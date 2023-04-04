@@ -10,15 +10,20 @@
 
 # Installation and running
 
-1. Install a recent Perl and cpanm (see https://perlbrew.pl/ or use a a package manager for your distribution )
+1. Clone this repo
+    ```
+    git clone https://git.sr.ht/~bduggan/leafpad
+    ```
 
-2. Install Mojolicious and Text::CSV_XS:
+2. Install a recent Perl and cpanm (see https://perlbrew.pl/ or use a a package manager for your distribution )
+
+3. Install Mojolicious and Text::CSV_XS:
      ```
      cpanm Mojolicious
      cpanm Text::CSV_XS
      ```
 
-3. Start the web server
+4. Start the web server
      ```
      morbo ./leafpad
      ```
