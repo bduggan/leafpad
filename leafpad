@@ -246,14 +246,15 @@ function make_details(j) {
 let last_cell = null
 function csvlistener(e) {
   let cell = e.target
-  if (last_cell) {
-    last_cell.style.backgroundColor = 'white'
-  }
-  last_cell = cell
   let layer = all_layers[cell.dataset.csv_row][cell.dataset.csv_col]
   if (!layer) {
     return
   }
+  if (last_cell) {
+    last_cell.style.backgroundColor = 'white'
+  }
+  cell.style.backgroundColor = '#ddddff'
+  last_cell = cell
   map.flyToBounds(layer)
 }
 
