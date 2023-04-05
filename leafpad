@@ -132,9 +132,9 @@ __DATA__
 
 var highlight = {
     "fillColor": "#000000",
-    "color": "#ffa500",
-    "weight" :  4,
-    "opacity": 1
+    "color": "#ff7A00",
+    "weight" : 10,
+    "opacity": 0.4
 };
 
 var geostyle = {
@@ -260,7 +260,7 @@ function csvlistener(e) {
   last_cell = cell
   highlighted = layer
   layer.setStyle(highlight)
-  map.flyToBounds(layer)
+  map.flyToBounds(layer, { maxZoom: 17 })
 }
 
 window.onload = () => {
