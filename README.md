@@ -2,6 +2,8 @@
 
 Leafpad is a simple way of viewing csv files that contain geojson columns.
 
+<img width="1192" alt="image" src="https://user-images.githubusercontent.com/58956/230172170-6b18dbad-3505-4d82-9e12-df7f4a670a0a.png">
+
 It was built using [mojolicious](https://mojolicious.org/).
 
 # How it works
@@ -39,4 +41,3 @@ It was built using [mojolicious](https://mojolicious.org/).
 
 6. New files placed along side it will automatically be viewable in the browser.
 
-<img width="1192" alt="image" src="https://user-images.githubusercontent.com/58956/230172170-6b18dbad-3505-4d82-9e12-df7f4a670a0a.png">
