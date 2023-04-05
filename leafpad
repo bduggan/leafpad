@@ -35,6 +35,8 @@ any '/' => sub ($c) {
   $c->stash(geojson_col => 'geojson');
   $c->stash( geodata => $send );
   $c->stash( csv_files => [ $data_dir->list->grep(sub { /.csv/ })->sort->each ]);
+  $c->stash( csv_data => [] );
+  $c->stash( csv_cols => [] );
   $c->render(template => 'index');
 } => 'index';
 
@@ -44,9 +46,16 @@ get '/show/csv/:name/:line' => { line => 0 } => sub ($c) {
   my $line = $c->param('line');
   $c->stash(zoom => $c->param('zoom') || $default_zoom);
   $c->stash( csv_files => [ ] );
-  my $data = csv( in => "" . $data_dir->child("$name.csv"), headers => 
-    sub { $seen{$_[0]}++ ? $_[0] . '-' . $seen{$_[0]} : $_[0] }
-  );
+
+  my $csv = Text::CSV_XS->new();
+  my $file = $data_dir->child("$name.csv");
+  open my $fh, "<", "$file" or die "$!";
+  my @header = $csv->header($fh, { munge_column_names => sub { $seen{$_[0]}++ ? $_[0] . '-' . $seen{$_[0]} : $_[0] }});
+  $csv->parse("$file") or die $!;
+  my $data = $csv->getline_hr_all($fh);
+  close $fh;
+  $c->stash(csv_data => $data);
+  $c->stash(csv_cols => \@header);
   if ($line) {
     $data = [ $data->[$line + 1] ];
   }
@@ -84,18 +93,39 @@ __DATA__
 </div>
 
 <div class='controls'>
-
-<div id='current_link'>
-Press <i>l</i> to generate a link to the current zoom+location
-</div>
-
+  <div id='current_link'>
+  Press <i>l</i> to generate a link to the current zoom+location
+  </div>
+  <div class='current_pos'>
+    <span id='lat'></span>, <span id='lon'></span>
+  </div>
 </div>
 
 <div id='details'>...</div>
 
 <div id="map"></div>
+
+<div id='csv_data'>
+<table class='csv_data'>
+<tr>
+  % for my $col (@$csv_cols) {
+  <th><%= $col %></th>
+  % }
+</tr>
+% for my $row (@$csv_data) {
+<tr>
+  % for my $col (@$csv_cols) {
+    <td><div class'max'><%= $row->{$col} %></div></td>
+  % }
+</tr>
+% }
+</table>
+% 
+
+</div>
+
 <style>
-#map { height: 70vh; }
+  #map { height: 70vh; }
 </style>
 %= javascript begin
 
@@ -237,6 +267,10 @@ window.onload = () => {
 %= end
 
 @@ style.css
+table.csv_data tr td div.max {
+  max-width: 30px;
+  overflow: scroll;
+}
 #details {
   border: 1px solid grey;
   padding: 2px;
@@ -259,8 +293,12 @@ td {
   border: 1px solid #ddd;
 }
 div.controls {
-  display:grid;
-  grid-template-columns: 1fr 1fr;
+  position:relative;
+}
+div.current_pos {
+  position:absolute;
+  top:0px;
+  right:2px;
 }
 div.geoform {
   display:grid;
