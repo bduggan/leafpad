@@ -130,9 +130,9 @@ __DATA__
 </style>
 %= javascript begin
 
-var higlight = {
-    "fillColor": "#aa0000",
-    "color": "#000000",
+var highlight = {
+    "fillColor": "#000000",
+    "color": "#ffa500",
     "weight" :  4,
     "opacity": 1
 };
@@ -181,6 +181,7 @@ map.doubleClickZoom.disable();
 L.tileLayer.provider('CartoDB.Positron').addTo(map);
 L.control.scale().addTo(map);
 
+let highlighted = null;
 var geolayer;
 var all_layers = {}
 % my $csv_row = 0;
@@ -199,13 +200,12 @@ var all_layers = {}
                 "geometry" : <%== $_->{$col} %>
            }, { style: geostyle, pointToLayer: function (f,latlng) { return L.circleMarker(latlng,geostyle) } })
      % }
-     geolayer.on('mouseover', function() { console.log('mouse over <%= $_->{label} %>'); this.setStyle(higlight);
+     geolayer.on('mouseover', function() { console.log('mouse over <%= $_->{label} %>'); highlighted = this; this.setStyle(highlight);
        let j = <%== Mojo::JSON::encode_json($_) =%>;
        document.getElementById('details').innerHTML = make_details(j);
        })
      geolayer.on('mouseout', function() { console.log('mouse out <%= $_->{label} %>'); this.resetStyle() })
      geolayer.on('click', function() {
-       console.log('mouse click');
        this.resetStyle();
        this.bringToBack();
      })
@@ -213,8 +213,8 @@ var all_layers = {}
      geolayer.csv_row = '<%= $csv_row %>'
      geolayer.csv_col = '<%= $col %>'
      geolayer.addTo(map);
-   % $csv_row++;
    % }
+   % $csv_row++;
 % }
 
 % for (@$geodata) {
@@ -253,8 +253,13 @@ function csvlistener(e) {
   if (last_cell) {
     last_cell.style.backgroundColor = 'white'
   }
+  if (highlighted) {
+    highlighted.resetStyle()
+  }
   cell.style.backgroundColor = '#ddddff'
   last_cell = cell
+  highlighted = layer
+  layer.setStyle(highlight)
   map.flyToBounds(layer)
 }
 
