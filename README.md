@@ -39,4 +39,4 @@ It was built using [mojolicious](https://mojolicious.org/).
 
 6. New files placed along side it will automatically be viewable in the browser.
 
-![image](https://user-images.githubusercontent.com/58956/229796970-f79e5bbc-f180-4e5c-ad1d-0d1ff07822cc.png)
+<img width="1192" alt="image" src="https://user-images.githubusercontent.com/58956/230172170-6b18dbad-3505-4d82-9e12-df7f4a670a0a.png">
