@@ -103,6 +103,9 @@ __DATA__
   </div>
   %= end
 </div>
+<div id='current_link'>
+Press <i>l</i> to generate a link to the current zoom+location
+</div>
 
 </div>
 
@@ -146,18 +149,36 @@ var markerhighlightstyle = {
   color: "#000000"
 };
 
+let current_lat = 0;
+let current_lon = 0;
+let current_zoom = <%= $zoom %>;
+
+function generate_link() {
+  let el = document.getElementById('current_link');
+  let base = '<%= url_for->to_abs %>';
+  let latlng = map.getCenter()
+  let link = `${base}?lat=${latlng.lat}&lon=${latlng.lng}&zoom=${map.getZoom()}`
+  el.innerHTML = `<a href=${link}>${link}</a>`
+}
+
+const keylistener = (event) => {
+  if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) {
+    return
+  }
+
+  const keyName = event.key;
+  if (keyName === 'l') { generate_link() }
+}
 
 var map = L.map('map').setView([<%= $lat %>, <%= $lon %>], <%= $zoom =%>);
-
-let frozen = false;
 
 map.addEventListener('mousemove', (event) => {
   let lat = Math.round(event.latlng.lat * 10000000) / 10000000;
   let lng = Math.round(event.latlng.lng * 10000000) / 10000000;
-  if (!frozen) {
-    document.getElementById('lat').innerHTML = `${lat}`
-    document.getElementById('lon').innerHTML = `${lng}`
-  }
+  current_lat = lat;
+  current_lon = lng;
+  document.getElementById('lat').innerHTML = `${lat}`
+  document.getElementById('lon').innerHTML = `${lng}`
 });
 
 map.doubleClickZoom.disable();
@@ -225,6 +246,10 @@ function make_details(j) {
  }
  out += "</table>"
  return out
+}
+
+window.onload = () => {
+  document.addEventListener('keydown', keylistener, false)
 }
 
 %= end
