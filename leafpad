@@ -85,24 +85,6 @@ __DATA__
 
 <div class='controls'>
 
-<div class='geoform'>
-%= form_for url_for() => method => 'GET' => begin
-  <div class='triple'> <div class='form_label'>lat:</div> <%= text_field 'lat', placeholder => 'e.g. 39.8' %> <div id='lat'></div> </div>
-  <div class='triple'> <div class='form_label'>lon:</div> <%= text_field 'lon', placeholder => 'e.g. -98.5' %> <div id='lon'></div> </div>
-  <div class='triple'>
-    <div class='form_label'>zoom:</div>
-    <%= text_field 'zoom', placeholder => 'e.g. 3' %>
-   </div>
-  <div class='triple'>
-    <div>geojson</div>
-    %= text_area 'geojson', class => 'wide', placeholder => '{ "type": "MultiPolygon" ... }'
-    <div></div>
-  </div>
-  <div>
-  %= submit_button 'go'
-  </div>
-  %= end
-</div>
 <div id='current_link'>
 Press <i>l</i> to generate a link to the current zoom+location
 </div>
