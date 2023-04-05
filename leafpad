@@ -39,10 +39,9 @@ any '/' => sub ($c) {
   $c->render(template => 'index');
 } => 'index';
 
-get '/show/csv/:name/:line' => { line => 0 } => sub ($c) {
+get '/show/csv/:name' => sub ($c) {
   my %seen; # uniqify names
   my $name = $c->param('name');
-  my $line = $c->param('line');
   $c->stash(zoom => $c->param('zoom') || $default_zoom);
   $c->stash( csv_files => [ ] );
 
@@ -55,19 +54,9 @@ get '/show/csv/:name/:line' => { line => 0 } => sub ($c) {
   close $fh;
   $c->stash(csv_data => $data);
   $c->stash(csv_cols => \@header);
-  if ($line) {
-    $data = [ $data->[$line + 1] ];
-  }
   $c->stash(geodata => $data);
-  my $lat = $c->param('lat') || $data->[0]{latitude} || $data->[0]{lat} || $default_lat;
-  my $lon = $c->param('lon') || $data->[0]{longitude} || $data->[0]{lon} || $default_lon;
-  if ($c->param('lat') or !$data->[0]{latitude}) {
-    $c->stash(marker_label => "you are here");
-  } else {
-    $c->stash(marker_label => "row 1: $lat, $lon");
-  }
-  $c->stash(lat => $lat);
-  $c->stash(lon => $lon);
+  $c->stash(lat => $c->param('lat') || $data->[0]{latitude} || $data->[0]{lat} || $default_lat);
+  $c->stash(lon => $c->param('lon') || $data->[0]{longitude} || $data->[0]{lon} || $default_lon);
   $c->render(template => 'index');
 } => 'show';
 
@@ -199,15 +188,13 @@ var all_layers = {}
                 "geometry" : <%== $_->{$col} %>
            }, { style: geostyle, pointToLayer: function (f,latlng) { return L.circleMarker(latlng,geostyle) } })
      % }
-     geolayer.on('mouseover', function() { console.log('mouse over <%= $_->{label} %>'); highlighted = this; this.setStyle(highlight);
+     geolayer.on('mouseover', function() {
+       highlighted = this; this.setStyle(highlight);
        let j = <%== Mojo::JSON::encode_json($_) =%>;
        document.getElementById('details').innerHTML = make_details(j);
-       })
-     geolayer.on('mouseout', function() { console.log('mouse out <%= $_->{label} %>'); this.resetStyle() })
-     geolayer.on('click', function() {
-       this.resetStyle();
-       this.bringToBack();
      })
+     geolayer.on('mouseout', function() { this.resetStyle() })
+     geolayer.on('click', function() { this.resetStyle(); this.bringToBack(); })
      all_layers['<%= $csv_row %>']['<%= $col %>'] = geolayer;
      geolayer.csv_row = '<%= $csv_row %>'
      geolayer.csv_col = '<%= $col %>'
@@ -249,6 +236,7 @@ function csvlistener(e) {
   if (!layer) {
     return
   }
+  map.flyToBounds(layer, { maxZoom: 17 })
   if (last_cell) {
     last_cell.style.backgroundColor = 'white'
   }
@@ -259,7 +247,6 @@ function csvlistener(e) {
   last_cell = cell
   highlighted = layer
   layer.setStyle(highlight)
-  map.flyToBounds(layer, { maxZoom: 17 })
 }
 
 window.onload = () => {
