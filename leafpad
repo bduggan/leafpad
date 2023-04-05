@@ -50,11 +50,10 @@ package Geofile {
 
   sub read_file($name) {
     my $csv = Text::CSV_XS->new();
-    my $file = $name . '.csv';
-    open my $fh, "<", "$name.csv" or die "$name: $!";
+    open my $fh, "<", "$name" or die "$name: $!";
     my %seen;
     my @header = $csv->header($fh, { munge_column_names => sub { $seen{$_[0]}++ ? $_[0] . '-' . $seen{$_[0]} : $_[0] }});
-    $csv->parse("$file") or die $!;
+    $csv->parse("$name") or die $!;
     my $data = $csv->getline_hr_all($fh);
     close $fh;
     ( \@header, $data );
@@ -67,14 +66,15 @@ get '/show/csv/:name' => sub ($c) {
   $c->stash( csv_files => [ ] );
   my $io = $data_dir->child("$name");
   if (-d $io) {
-    my @csvs = $io->list->grep(sub { /\.csv/ })->each;
-    die @csvs;
+    $c->stash(geofiles =>
+      $io->list->grep(sub { /\.csv/ })->map( sub { Geofile->ingest("$_") } ))
+  } else {
+    my $f = Geofile->ingest("$io.csv");
+    $c->stash(geofiles => [ $f ]);
   }
-  my $f = Geofile->ingest($io);
-  $c->stash(header => $f->header);
-  $c->stash(geodata => $f->geodata);
-  $c->stash(lat => $c->param('lat') || $f->geodata->[0]{latitude} || $f->geodata->[0]{lat} || $default_lat);
-  $c->stash(lon => $c->param('lon') || $f->geodata->[0]{longitude} || $f->geodata->[0]{lon} || $default_lon);
+
+  $c->stash(lat => $c->param('lat') || $default_lat);
+  $c->stash(lon => $c->param('lon') || $default_lon);
   $c->render(template => 'index');
 } => 'show';
 
@@ -112,22 +112,24 @@ __DATA__
 <div class='panels'>
   <div id="map"></div>
   <div id='csv_data'>
-    <table class='csv_data'>
-    <tr>
-      % for my $col (@$header) {
-      <th><%= $col %></th>
+    % for my $file (@$geofiles) {
+      <table class='csv_data'>
+      <tr>
+        % for my $col (@{ $file->header }) {
+        <th><%= $col %></th>
+        % }
+      </tr>
+      % my $row_index = 0;
+      % for my $row (@{ $file->geodata }) {
+      <tr>
+        % for my $col (@{ $file->header }) {
+          <td><div class='csv_cell' data-csv_file="<%= $file->name %>" data-csv_col="<%= $col %>" data-csv_row="<%= $row_index %>"><%= $row->{$col} %></div></td>
+        % }
+        % $row_index++;
+      </tr>
       % }
-    </tr>
-    % my $row_index = 0;
-    % for my $row (@$geodata) {
-    <tr>
-      % for my $col (@$header) {
-        <td><div class='csv_cell' data-csv_col="<%= $col %>" data-csv_row="<%= $row_index %>"><%= $row->{$col} %></div></td>
-      % }
-      % $row_index++;
-    </tr>
+      </table>
     % }
-  </table>
   </div>
 </div>
 
@@ -190,42 +192,47 @@ L.control.scale().addTo(map);
 let highlighted = null;
 var geolayer;
 var all_layers = {}
-% my $csv_row = 0;
-% for (@$geodata) {
-  all_layers['<%= $csv_row %>'] = {}
-  % for my $col (keys %$_) {
-     % next unless $col =~ /geojson/;
-     % my $geo = $_->{$col} or next;
-     % if ( $geo =~ /Feature/ ) {
-       geolayer = L.geoJSON( <%== $_->{$col} %>, { style: geostyle } )
-     % } else {
-       geolayer = L.geoJSON({
-               "type": "Feature",
-               "interactive" : false,
-                "style" : { color: "black" },
-                "geometry" : <%== $_->{$col} %>
-           }, { style: geostyle, pointToLayer: function (f,latlng) { return L.circleMarker(latlng,geostyle) } })
+% for my $file (@{ $geofiles }) {
+  all_layers['<%= $file->name %>'] = {}
+  % my $geodata = $file->geodata;
+  % my $csv_row = 0;
+  % for (@$geodata) {
+    all_layers['<%= $file->name %>']['<%= $csv_row %>'] = {}
+    % for my $col (keys %$_) {
+       % next unless $col =~ /geojson/;
+       % my $geo = $_->{$col} or next;
+       % if ( $geo =~ /Feature/ ) {
+         geolayer = L.geoJSON( <%== $_->{$col} %>, { style: geostyle } )
+       % } else {
+         geolayer = L.geoJSON({
+                 "type": "Feature",
+                 "interactive" : false,
+                  "style" : { color: "black" },
+                  "geometry" : <%== $_->{$col} %>
+             }, { style: geostyle, pointToLayer: function (f,latlng) { return L.circleMarker(latlng,geostyle) } })
+       % }
+       geolayer.on('mouseover', function() {
+         highlighted = this; this.setStyle(highlight);
+         let j = <%== Mojo::JSON::encode_json($_) =%>;
+         document.getElementById('details').innerHTML = make_details(j);
+       })
+       geolayer.on('mouseout', function() { this.resetStyle() })
+       geolayer.on('click', function() { this.resetStyle(); this.bringToBack(); })
+       all_layers['<%= $file->name %>']['<%= $csv_row %>']['<%= $col %>'] = geolayer;
+       geolayer.csv_row = '<%= $csv_row %>'
+       geolayer.csv_col = '<%= $col %>'
+       geolayer.csv_file = '<%= $file->name %>'
+       geolayer.addTo(map);
      % }
-     geolayer.on('mouseover', function() {
-       highlighted = this; this.setStyle(highlight);
-       let j = <%== Mojo::JSON::encode_json($_) =%>;
-       document.getElementById('details').innerHTML = make_details(j);
-     })
-     geolayer.on('mouseout', function() { this.resetStyle() })
-     geolayer.on('click', function() { this.resetStyle(); this.bringToBack(); })
-     all_layers['<%= $csv_row %>']['<%= $col %>'] = geolayer;
-     geolayer.csv_row = '<%= $csv_row %>'
-     geolayer.csv_col = '<%= $col %>'
-     geolayer.addTo(map);
-   % }
-   % $csv_row++;
-% }
+     % $csv_row++;
+  % }
 
-% for (@$geodata) {
-  % my $lat = $_->{lat} || $_->{latitude} or next;
-  % my $lon = $_->{lon} || $_->{longitude} or next;
-  j = <%== Mojo::JSON::encode_json($_) =%>;
-  L.circleMarker([<%= $lat %>, <%= $lon %>], markerstyle).addTo(map).bindPopup(make_details(j), {maxWidth: "auto"})
+  % for (@$geodata) {
+    % my $lat = $_->{lat} || $_->{latitude} or next;
+    % my $lon = $_->{lon} || $_->{longitude} or next;
+    j = <%== Mojo::JSON::encode_json($_) =%>;
+    L.circleMarker([<%= $lat %>, <%= $lon %>], markerstyle).addTo(map).bindPopup(make_details(j), {maxWidth: "auto"})
+  % }
 % }
 
 function make_details(j) {
@@ -250,7 +257,7 @@ function make_details(j) {
 let last_cell = null
 function csvlistener(e) {
   let cell = e.target
-  let layer = all_layers[cell.dataset.csv_row][cell.dataset.csv_col]
+  let layer = all_layers[cell.dataset.csv_file][cell.dataset.csv_row][cell.dataset.csv_col]
   if (!layer) {
     return
   }
