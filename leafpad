@@ -32,7 +32,6 @@ any '/' => sub ($c) {
   $c->stash(lat => $lat);
   $c->stash(lon => $lon);
   my $send = [ map +{ geojson => $_, label => 'shape' }, @geodata ];
-  $c->stash(geojson_col => 'geojson');
   $c->stash( geodata => $send );
   $c->stash( csv_files => [ $data_dir->list->grep(sub { /.csv/ })->sort->each ]);
   $c->stash( csv_data => [] );
@@ -112,11 +111,13 @@ __DATA__
   <th><%= $col %></th>
   % }
 </tr>
+% my $row_index = 0;
 % for my $row (@$csv_data) {
 <tr>
   % for my $col (@$csv_cols) {
-    <td><div class'max'><%= $row->{$col} %></div></td>
+    <td><div class='csv_cell' data-csv_col="<%= $col %>" data-csv_row="<%= $row_index %>"><%= $row->{$col} %></div></td>
   % }
+  % $row_index++;
 </tr>
 % }
 </table>
@@ -153,18 +154,6 @@ var markerstyle = {
   color: "#000000"
 };
 
-var markerhighlightstyle = {
-  radius: 5,
-  weight: 1,
-  fillOpacity: 0.8,
-  fillColor: "#ffffff",
-  color: "#000000"
-};
-
-let current_lat = 0;
-let current_lon = 0;
-let current_zoom = <%= $zoom %>;
-
 function generate_link() {
   let el = document.getElementById('current_link');
   let base = '<%= url_for->to_abs %>';
@@ -177,36 +166,26 @@ const keylistener = (event) => {
   if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) {
     return
   }
-
   const keyName = event.key;
   if (keyName === 'l') { generate_link() }
 }
 
 var map = L.map('map').setView([<%= $lat %>, <%= $lon %>], <%= $zoom =%>);
-
 map.addEventListener('mousemove', (event) => {
   let lat = Math.round(event.latlng.lat * 10000000) / 10000000;
   let lng = Math.round(event.latlng.lng * 10000000) / 10000000;
-  current_lat = lat;
-  current_lon = lng;
   document.getElementById('lat').innerHTML = `${lat}`
   document.getElementById('lon').innerHTML = `${lng}`
 });
-
 map.doubleClickZoom.disable();
 L.tileLayer.provider('CartoDB.Positron').addTo(map);
 L.control.scale().addTo(map);
 
-% if (stash 'show_marker') {
-let marker = L.marker([<%= $lat %>, <%= $lon %>], markerhighlightstyle).addTo(map)
-marker.bindPopup("<%= (stash 'marker_label') // "marker"  %>")
-% } elsif (stash 'show_marker') { 
-let marker = L.circleMarker([<%= $lat %>, <%= $lon %>], markerhighlightstyle).addTo(map);
-marker.bindPopup("<%= (stash 'marker_label') // "marker" %>");
-% }
-
 var geolayer;
+var all_layers = {}
+% my $csv_row = 0;
 % for (@$geodata) {
+  all_layers['<%= $csv_row %>'] = {}
   % for my $col (keys %$_) {
      % next unless $col =~ /geojson/;
      % my $geo = $_->{$col} or next;
@@ -230,7 +209,11 @@ var geolayer;
        this.resetStyle();
        this.bringToBack();
      })
+     all_layers['<%= $csv_row %>']['<%= $col %>'] = geolayer;
+     geolayer.csv_row = '<%= $csv_row %>'
+     geolayer.csv_col = '<%= $col %>'
      geolayer.addTo(map);
+   % $csv_row++;
    % }
 % }
 
@@ -260,16 +243,29 @@ function make_details(j) {
  return out
 }
 
+let last_cell = null
+function csvlistener(e) {
+  let cell = e.target
+  if (last_cell) {
+    last_cell.style.backgroundColor = 'white'
+  }
+  last_cell = cell
+  let layer = all_layers[cell.dataset.csv_row][cell.dataset.csv_col]
+  if (!layer) {
+    return
+  }
+  map.flyToBounds(layer)
+}
+
 window.onload = () => {
-  document.addEventListener('keydown', keylistener, false)
+  document.addEventListener('keydown', keylistener)
+  document.getElementById('csv_data').addEventListener('click', csvlistener);
 }
 
 %= end
 
 @@ style.css
-table.csv_data tr td div.max {
-  max-width: 30px;
-  overflow: scroll;
+table.csv_data tr td div.csv_cell {
 }
 #details {
   border: 1px solid grey;
