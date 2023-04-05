@@ -34,25 +34,27 @@ any '/' => sub ($c) {
   my $send = [ map +{ geojson => $_, label => 'shape' }, @geodata ];
   $c->stash( geodata => $send );
   $c->stash( csv_files => [ $data_dir->list->grep(sub { /.csv/ })->sort->each ]);
-  $c->stash( csv_data => [] );
   $c->stash( csv_cols => [] );
   $c->render(template => 'index');
 } => 'index';
 
 get '/show/csv/:name' => sub ($c) {
-  my %seen; # uniqify names
-  my $name = $c->param('name');
+  my $name = $c->stash('name');
   $c->stash(zoom => $c->param('zoom') || $default_zoom);
   $c->stash( csv_files => [ ] );
-
+  my $io = $data_dir->child("$name");
+  if (-d $io) {
+    my @csvs = $io->list->grep(sub { /\.csv/ })->each;
+    die @csvs;
+  }
   my $csv = Text::CSV_XS->new();
-  my $file = $data_dir->child("$name.csv");
+  my $file = $io . '.csv';
   open my $fh, "<", "$file" or die "$!";
+  my %seen;
   my @header = $csv->header($fh, { munge_column_names => sub { $seen{$_[0]}++ ? $_[0] . '-' . $seen{$_[0]} : $_[0] }});
   $csv->parse("$file") or die $!;
   my $data = $csv->getline_hr_all($fh);
   close $fh;
-  $c->stash(csv_data => $data);
   $c->stash(csv_cols => \@header);
   $c->stash(geodata => $data);
   $c->stash(lat => $c->param('lat') || $data->[0]{latitude} || $data->[0]{lat} || $default_lat);
@@ -101,7 +103,7 @@ __DATA__
       % }
     </tr>
     % my $row_index = 0;
-    % for my $row (@$csv_data) {
+    % for my $row (@$geodata) {
     <tr>
       % for my $col (@$csv_cols) {
         <td><div class='csv_cell' data-csv_col="<%= $col %>" data-csv_row="<%= $row_index %>"><%= $row->{$col} %></div></td>
