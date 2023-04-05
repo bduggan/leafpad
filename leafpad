@@ -102,31 +102,30 @@ __DATA__
 
 <div id='details'>...</div>
 
-<div id="map"></div>
-
-<div id='csv_data'>
-<table class='csv_data'>
-<tr>
-  % for my $col (@$csv_cols) {
-  <th><%= $col %></th>
-  % }
-</tr>
-% my $row_index = 0;
-% for my $row (@$csv_data) {
-<tr>
-  % for my $col (@$csv_cols) {
-    <td><div class='csv_cell' data-csv_col="<%= $col %>" data-csv_row="<%= $row_index %>"><%= $row->{$col} %></div></td>
-  % }
-  % $row_index++;
-</tr>
-% }
-</table>
-% 
-
+<div class='panels'>
+  <div id="map"></div>
+  <div id='csv_data'>
+    <table class='csv_data'>
+    <tr>
+      % for my $col (@$csv_cols) {
+      <th><%= $col %></th>
+      % }
+    </tr>
+    % my $row_index = 0;
+    % for my $row (@$csv_data) {
+    <tr>
+      % for my $col (@$csv_cols) {
+        <td><div class='csv_cell' data-csv_col="<%= $col %>" data-csv_row="<%= $row_index %>"><%= $row->{$col} %></div></td>
+      % }
+      % $row_index++;
+    </tr>
+    % }
+  </table>
+  </div>
 </div>
 
 <style>
-  #map { height: 70vh; }
+  #map { }
 </style>
 %= javascript begin
 
@@ -271,7 +270,14 @@ window.onload = () => {
 %= end
 
 @@ style.css
-table.csv_data tr td div.csv_cell {
+div#csv_data {
+  overflow-y: scroll;
+  border:1px solid #888;
+}
+.panels {
+  display:grid;
+  grid-template-rows: 70vh 20vh;
+  grid-template-columns: 1fr;
 }
 #details {
   border: 1px solid grey;
