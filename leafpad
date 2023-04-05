@@ -34,9 +34,32 @@ any '/' => sub ($c) {
   my $send = [ map +{ geojson => $_, label => 'shape' }, @geodata ];
   $c->stash( geodata => $send );
   $c->stash( csv_files => [ $data_dir->list->grep(sub { /.csv/ })->sort->each ]);
-  $c->stash( csv_cols => [] );
+  $c->stash( header => [] );
   $c->render(template => 'index');
 } => 'index';
+
+package Geofile {
+  use Mojo::Base qw/-base -signatures/;
+  has 'geodata';
+  has 'header';
+  has 'name';
+  sub ingest($self,$name) {
+    my ($header,$data) = read_file($name);
+    $self->new(header => $header, geodata => $data, name => $name);
+  }
+
+  sub read_file($name) {
+    my $csv = Text::CSV_XS->new();
+    my $file = $name . '.csv';
+    open my $fh, "<", "$name.csv" or die "$name: $!";
+    my %seen;
+    my @header = $csv->header($fh, { munge_column_names => sub { $seen{$_[0]}++ ? $_[0] . '-' . $seen{$_[0]} : $_[0] }});
+    $csv->parse("$file") or die $!;
+    my $data = $csv->getline_hr_all($fh);
+    close $fh;
+    ( \@header, $data );
+  }
+}
 
 get '/show/csv/:name' => sub ($c) {
   my $name = $c->stash('name');
@@ -47,18 +70,11 @@ get '/show/csv/:name' => sub ($c) {
     my @csvs = $io->list->grep(sub { /\.csv/ })->each;
     die @csvs;
   }
-  my $csv = Text::CSV_XS->new();
-  my $file = $io . '.csv';
-  open my $fh, "<", "$file" or die "$!";
-  my %seen;
-  my @header = $csv->header($fh, { munge_column_names => sub { $seen{$_[0]}++ ? $_[0] . '-' . $seen{$_[0]} : $_[0] }});
-  $csv->parse("$file") or die $!;
-  my $data = $csv->getline_hr_all($fh);
-  close $fh;
-  $c->stash(csv_cols => \@header);
-  $c->stash(geodata => $data);
-  $c->stash(lat => $c->param('lat') || $data->[0]{latitude} || $data->[0]{lat} || $default_lat);
-  $c->stash(lon => $c->param('lon') || $data->[0]{longitude} || $data->[0]{lon} || $default_lon);
+  my $f = Geofile->ingest($io);
+  $c->stash(header => $f->header);
+  $c->stash(geodata => $f->geodata);
+  $c->stash(lat => $c->param('lat') || $f->geodata->[0]{latitude} || $f->geodata->[0]{lat} || $default_lat);
+  $c->stash(lon => $c->param('lon') || $f->geodata->[0]{longitude} || $f->geodata->[0]{lon} || $default_lon);
   $c->render(template => 'index');
 } => 'show';
 
@@ -98,14 +114,14 @@ __DATA__
   <div id='csv_data'>
     <table class='csv_data'>
     <tr>
-      % for my $col (@$csv_cols) {
+      % for my $col (@$header) {
       <th><%= $col %></th>
       % }
     </tr>
     % my $row_index = 0;
     % for my $row (@$geodata) {
     <tr>
-      % for my $col (@$csv_cols) {
+      % for my $col (@$header) {
         <td><div class='csv_cell' data-csv_col="<%= $col %>" data-csv_row="<%= $row_index %>"><%= $row->{$col} %></div></td>
       % }
       % $row_index++;
