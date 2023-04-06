@@ -13,6 +13,14 @@ Leafpad is a simple way of viewing csv files that contain geojson columns.
 4. Columns named "lat" or "lon" (or latitude or longitude) will be markers
 5. That's it!
 
+But wait, there's more!
+
+* click on geojson columns in the csv to fly there on the map!
+* put multiple csv files into a directory, and go to /show/csv/dirname to see them all at once!
+* use the mouse to scroll/pan
+* type "l" to generate a link with the current zoom and lat/lon
+* okay, that's really it
+
 # Installation and running
 
 1. Clone this repo
