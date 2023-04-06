@@ -11,27 +11,6 @@ my $default_lon  = -96.7;
 
 app->defaults(zoom => $default_zoom);
 
-any '/' => sub ($c) {
-  my $lat = $c->param('lat') || $default_lat;
-  my $lon = $c->param('lon') || $default_lon;
-  $c->stash(zoom => $c->param('zoom')) if $c->param('zoom');
-  my $geojson = $c->param('geojson') // '{}';
-  my @geodata = split /\n/, $geojson;
-  unless ($geodata[1] && $geodata[1] =~ /^{/) {
-    @geodata = ($geojson);
-  }
-  $c->stash(lat => $lat);
-  $c->stash(lon => $lon);
-  my $send = [map +{geojson => $_, label => 'shape'}, @geodata];
-  $c->stash(geofiles => []);
-  $c->stash(
-    csv_files => [
-      $data_dir->list({dir => 1})->grep(sub { /.csv/ || -d "$_" })->sort->each
-    ]
-  );
-  $c->render(template => 'index');
-} => 'index';
-
 package Geofile {
   use Mojo::Base qw/-base -signatures/;
   use Mojo::File qw/path/;
@@ -67,10 +46,24 @@ package Geofile {
   }
 }
 
+get '/' => sub ($c) {
+  $c->stash(zoom => $c->param('zoom') || $default_zoom);
+  $c->stash(lat  => $c->param('lat') || $default_lat);
+  $c->stash(lon  => $c->param('lon') || $default_lon);
+  $c->stash(geofiles => []);
+  $c->stash(
+    csv_files => [
+      $data_dir->list({dir => 1})->grep(sub { /.csv/ || -d "$_" })->sort->each
+    ]
+  );
+} => 'index';
+
 get '/show/csv/:name' => sub ($c) {
-  my $name = $c->stash('name');
-  $c->stash(zoom      => $c->param('zoom') || $default_zoom);
+  $c->stash(zoom => $c->param('zoom') || $default_zoom);
+  $c->stash(lat  => $c->param('lat') || $default_lat);
+  $c->stash(lon  => $c->param('lon') || $default_lon);
   $c->stash(csv_files => []);
+  my $name = $c->stash('name');
   my $io = $data_dir->child("$name");
   if (-d $io) {
     $c->stash(geofiles =>
@@ -78,8 +71,6 @@ get '/show/csv/:name' => sub ($c) {
   } else {
     $c->stash(geofiles => [Geofile->ingest("$io.csv")]);
   }
-  $c->stash(lat => $c->param('lat') || $default_lat);
-  $c->stash(lon => $c->param('lon') || $default_lon);
   $c->render(template => 'index');
 } => 'show';
 
