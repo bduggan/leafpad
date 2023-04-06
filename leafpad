@@ -20,16 +20,16 @@ package Geofile {
   has 'header';
   has 'filename';
 
-  sub name ($self) {
+  sub name($self) {
     path($self->filename)->basename('.csv');
   }
 
-  sub ingest ($self, $name) {
+  sub ingest($self, $name) {
     my ($header, $data) = read_file($name);
     $self->new(header => $header, geodata => $data, filename => $name);
   }
 
-  sub read_file ($name) {
+  sub read_file($name) {
     my $csv = Text::CSV_XS->new();
     open my $fh, "<", "$name" or die "$name: $!";
     my %seen;
@@ -46,7 +46,7 @@ package Geofile {
   }
 }
 
-get '/' => sub ($c) {
+get '/' => sub($c) {
   $c->stash(zoom     => $c->param('zoom') || $default_zoom);
   $c->stash(lat      => $c->param('lat')  || $default_lat);
   $c->stash(lon      => $c->param('lon')  || $default_lon);
@@ -58,7 +58,7 @@ get '/' => sub ($c) {
   );
 } => 'index';
 
-get '/show/csv/:name' => sub ($c) {
+get '/show/csv/:name' => sub($c) {
   $c->stash(zoom      => $c->param('zoom') || $default_zoom);
   $c->stash(lat       => $c->param('lat')  || $default_lat);
   $c->stash(lon       => $c->param('lon')  || $default_lon);
@@ -98,7 +98,7 @@ __DATA__
   <div id='current_link'>
   Press <i>l</i> to generate a link to the current zoom+location
   </div>
-  <div class='current_pos'>
+  <div class='current_pos' title='latitude,longitude' alt='latitude,longitude'>
     <span id='lat'></span>, <span id='lon'></span>
   </div>
 </div>
@@ -127,7 +127,10 @@ __DATA__
           <tr>
             % for my $col (@{ $file->header }) {
               <td>
-                <div class='csv_cell' data-csv_file="<%= $file->name %>" data-csv_col="<%= $col %>" data-csv_row="<%= $row_index %>"><%= $row->{$col} %></div>
+                <div class='csv_cell'
+                     data-csv_file="<%= $file->name %>"
+                     data-csv_col="<%= $col %>"
+                     data-csv_row="<%= $row_index %>"><%= $row->{$col} %></div>
                 </td>
             % }
             % $row_index++;
@@ -176,21 +179,7 @@ function generate_link() {
   el.innerHTML = `<a href=${link}>${link}</a>`
 }
 
-const keylistener = (event) => {
-  if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) {
-    return
-  }
-  const keyName = event.key;
-  if (keyName === 'l') { generate_link() }
-}
-
 var map = L.map('map').setView([<%= $lat %>, <%= $lon %>], <%= $zoom =%>);
-map.addEventListener('mousemove', (event) => {
-  let lat = Math.round(event.latlng.lat * 10000000) / 10000000;
-  let lng = Math.round(event.latlng.lng * 10000000) / 10000000;
-  document.getElementById('lat').innerHTML = `${lat}`
-  document.getElementById('lon').innerHTML = `${lng}`
-});
 map.doubleClickZoom.disable();
 L.tileLayer.provider('CartoDB.Positron').addTo(map);
 L.control.scale().addTo(map);
@@ -260,39 +249,47 @@ function make_details(j) {
  return out
 }
 
+const mouselistener = (event) => {
+  document.getElementById('lat').innerHTML = Math.round(event.latlng.lat * 10000000) / 10000000;
+  document.getElementById('lon').innerHTML = Math.round(event.latlng.lng * 10000000) / 10000000;
+}
+
+const keylistener = (event) => {
+  if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey)
+    return
+  const keyName = event.key;
+  if (keyName === 'l')
+    generate_link()
+}
+
 let last_cell = null
-function csvlistener(e) {
+const csvlistener = (e) => {
   let cell = e.target
-  let file = cell.dataset.csv_file
-  if (!file) {
-    return
-  }
-  let layer = all_layers[file][cell.dataset.csv_row][cell.dataset.csv_col]
-  if (!layer) {
-    return
-  }
+  let data = cell.dataset
+  let file = data.csv_file
+  if (!file) return
+  let layer = all_layers[file][data.csv_row][data.csv_col]
+  if (!layer) return
+
   map.flyToBounds(layer, { maxZoom: 17 })
-  if (last_cell) {
-    last_cell.style.backgroundColor = 'white'
-  }
-  if (highlighted) {
-    highlighted.resetStyle()
-  }
+
+  if (last_cell)    last_cell.style.backgroundColor = 'white'
+  if (highlighted)  highlighted.resetStyle() 
   cell.style.backgroundColor = '#ddddff'
-  last_cell = cell
-  highlighted = layer
+  last_cell                  = cell
+  highlighted                = layer
   layer.setStyle(highlight)
 }
 
-function tablistener(e) {
+const tablistener = (e) => {
   let table_to_show = `table_${e.target.id}`
-  let tab_to_show = e.target.id
+  let tab_to_show   = e.target.id
   for (let c of document.querySelector('#csv_tables').children) {
     c.style.display = c.id == table_to_show ? 'block' : 'none'
   }
   for (let c of document.querySelector('#tabs').children) {
     c.style.backgroundColor = c.id == tab_to_show ? '#00bb00' : 'white'
-    c.style.color = c.id == tab_to_show ? 'white' : 'black'
+    c.style.color           = c.id == tab_to_show ? 'white' : 'black'
   }
 }
 
@@ -300,6 +297,7 @@ window.onload = () => {
   document.addEventListener('keydown', keylistener)
   document.getElementById('csv_data').addEventListener('click', csvlistener);
   document.getElementById('tabs').addEventListener('click', tablistener);
+  map.addEventListener('mousemove', mouselistener)
 }
 
 %= end
@@ -378,15 +376,15 @@ div#tabs div:hover {
 <!DOCTYPE html>
 <html>
 <head>
- <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
-   integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
-   crossorigin=""/>
- <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
-   integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
-   crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet-providers@1.13.0/leaflet-providers.js"></script>
-  <title><%= title %></title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+     integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+     crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+     integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+     crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-providers@1.13.0/leaflet-providers.js"></script>
   %= stylesheet '/style.css'
+  <title><%= title %></title>
 </head>
   <body><%= content %></body>
 </html>
