@@ -33,7 +33,7 @@ any '/' => sub ($c) {
   $c->stash(lon => $lon);
   my $send = [ map +{ geojson => $_, label => 'shape' }, @geodata ];
   $c->stash( geofiles => [] );
-  $c->stash( csv_files => [ $data_dir->list->grep(sub { /.csv/ })->sort->each ]);
+  $c->stash( csv_files => [ $data_dir->list({dir => 1})->grep(sub { /.csv/ || -d "$_" })->sort->each ]);
   $c->render(template => 'index');
 } => 'index';
 
