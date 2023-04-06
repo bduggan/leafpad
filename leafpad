@@ -1,16 +1,7 @@
 #!/usr/bin/env perl
 use Mojolicious::Lite -signatures;
 use Mojo::File qw/path/;
-use Text::CSV_XS qw/csv/;
 use Mojo::Collection qw/c/;
-
-#
-# 1. add a csv file to data/
-#    One column should be "geojson".
-#    Other columns can be whatever
-# 2. go to /show/csv/filename
-# 3. done!
-#
 
 my $data_dir = app->home->child('data');
 
@@ -40,14 +31,12 @@ any '/' => sub ($c) {
 package Geofile {
   use Mojo::Base qw/-base -signatures/;
   use Mojo::File qw/path/;
+  use Text::CSV_XS;
 
   has 'geodata';
   has 'header';
   has 'filename';
 
-  sub label($self) {
-    $self->name
-  }
   sub name($self) {
     path($self->filename)->basename('.csv');
   }
@@ -75,13 +64,10 @@ get '/show/csv/:name' => sub ($c) {
   $c->stash( csv_files => [ ] );
   my $io = $data_dir->child("$name");
   if (-d $io) {
-    $c->stash(geofiles =>
-      $io->list->grep(sub { /\.csv/ })->map( sub { Geofile->ingest("$_") } ))
+    $c->stash(geofiles => $io->list->grep(sub { /\.csv/ })->map( sub { Geofile->ingest("$_") } ))
   } else {
-    my $f = Geofile->ingest("$io.csv");
-    $c->stash(geofiles => [ $f ]);
+    $c->stash(geofiles => [ Geofile->ingest("$io.csv") ]);
   }
-
   $c->stash(lat => $c->param('lat') || $default_lat);
   $c->stash(lon => $c->param('lon') || $default_lon);
   $c->render(template => 'index');
@@ -100,11 +86,11 @@ __DATA__
 </h3>
 
 <div class="csv_files">
-% for my $file (@$csv_files) {
-  %= link_to url_for('show', { name => $file->basename('.csv') }) => begin
-    %= $file->basename('.csv')
-  %= end
-% }
+  % for my $file (@$csv_files) {
+    %= link_to url_for('show', { name => $file->basename('.csv') }) => begin
+      %= $file->basename('.csv')
+    %= end
+  % }
 </div>
 
 <div class='controls'>
@@ -123,13 +109,13 @@ __DATA__
   <div id='csv_data'>
     <div id='tabs'>
       % for my $file (@$geofiles) {
-        <div id='<%= $file->label %>'><%= $file->label %></div>
+        <div id='<%= $file->name %>'><%= $file->name %></div>
       % }
     </div>
     <div id='csv_tables'>
     % for my $file (@$geofiles) {
-      <table class='csv_data' id='table_<%= $file->label %>'>
-        <caption><b><%= $file->label %></b></caption>
+      <table class='csv_data' id='table_<%= $file->name %>'>
+        <caption><b><%= $file->name %></b></caption>
         <tr>
           % for my $col (@{ $file->header }) {
           <th><%= $col %></th>
@@ -139,7 +125,9 @@ __DATA__
         % for my $row (@{ $file->geodata }) {
           <tr>
             % for my $col (@{ $file->header }) {
-              <td><div class='csv_cell' data-csv_file="<%= $file->name %>" data-csv_col="<%= $col %>" data-csv_row="<%= $row_index %>"><%= $row->{$col} %></div></td>
+              <td>
+                <div class='csv_cell' data-csv_file="<%= $file->name %>" data-csv_col="<%= $col %>" data-csv_row="<%= $row_index %>"><%= $row->{$col} %></div>
+                </td>
             % }
             % $row_index++;
           </tr>
