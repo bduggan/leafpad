@@ -15,8 +15,8 @@ Leafpad is a simple way of viewing csv files that contain geojson columns.
 
 But wait, there's more!
 
-* click on geojson columns in the csv to fly there on the map!
-* put multiple csv files into a directory, and go to /show/csv/dirname to see them all at once!
+* click on geojson columns in the csv to fly there on the map
+* put multiple csv files into a directory, and them all at once
 * use the mouse to scroll/pan
 * type "l" to generate a link with the current zoom and lat/lon
 * okay, that's really it
