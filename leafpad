@@ -32,20 +32,29 @@ any '/' => sub ($c) {
   $c->stash(lat => $lat);
   $c->stash(lon => $lon);
   my $send = [ map +{ geojson => $_, label => 'shape' }, @geodata ];
-  $c->stash( geodata => $send );
+  $c->stash( geofiles => [] );
   $c->stash( csv_files => [ $data_dir->list->grep(sub { /.csv/ })->sort->each ]);
-  $c->stash( header => [] );
   $c->render(template => 'index');
 } => 'index';
 
 package Geofile {
   use Mojo::Base qw/-base -signatures/;
+  use Mojo::File qw/path/;
+
   has 'geodata';
   has 'header';
-  has 'name';
+  has 'filename';
+
+  sub label($self) {
+    $self->name
+  }
+  sub name($self) {
+    path($self->filename)->basename('.csv');
+  }
+
   sub ingest($self,$name) {
     my ($header,$data) = read_file($name);
-    $self->new(header => $header, geodata => $data, name => $name);
+    $self->new(header => $header, geodata => $data, filename => $name);
   }
 
   sub read_file($name) {
@@ -112,24 +121,32 @@ __DATA__
 <div class='panels'>
   <div id="map"></div>
   <div id='csv_data'>
-    % for my $file (@$geofiles) {
-      <table class='csv_data'>
-      <tr>
-        % for my $col (@{ $file->header }) {
-        <th><%= $col %></th>
-        % }
-      </tr>
-      % my $row_index = 0;
-      % for my $row (@{ $file->geodata }) {
-      <tr>
-        % for my $col (@{ $file->header }) {
-          <td><div class='csv_cell' data-csv_file="<%= $file->name %>" data-csv_col="<%= $col %>" data-csv_row="<%= $row_index %>"><%= $row->{$col} %></div></td>
-        % }
-        % $row_index++;
-      </tr>
+    <div id='tabs'>
+      % for my $file (@$geofiles) {
+        <div id='<%= $file->label %>'><%= $file->label %></div>
       % }
+    </div>
+    <div id='csv_tables'>
+    % for my $file (@$geofiles) {
+      <table class='csv_data' id='table_<%= $file->label %>'>
+        <caption><b><%= $file->label %></b></caption>
+        <tr>
+          % for my $col (@{ $file->header }) {
+          <th><%= $col %></th>
+          % }
+        </tr>
+        % my $row_index = 0;
+        % for my $row (@{ $file->geodata }) {
+          <tr>
+            % for my $col (@{ $file->header }) {
+              <td><div class='csv_cell' data-csv_file="<%= $file->name %>" data-csv_col="<%= $col %>" data-csv_row="<%= $row_index %>"><%= $row->{$col} %></div></td>
+            % }
+            % $row_index++;
+          </tr>
+        % }
       </table>
     % }
+    </div>
   </div>
 </div>
 
@@ -257,7 +274,11 @@ function make_details(j) {
 let last_cell = null
 function csvlistener(e) {
   let cell = e.target
-  let layer = all_layers[cell.dataset.csv_file][cell.dataset.csv_row][cell.dataset.csv_col]
+  let file = cell.dataset.csv_file
+  if (!file) {
+    return
+  }
+  let layer = all_layers[file][cell.dataset.csv_row][cell.dataset.csv_col]
   if (!layer) {
     return
   }
@@ -274,9 +295,22 @@ function csvlistener(e) {
   layer.setStyle(highlight)
 }
 
+function tablistener(e) {
+  let table_to_show = `table_${e.target.id}`
+  let tab_to_show = e.target.id
+  for (let c of document.querySelector('#csv_tables').children) {
+    c.style.display = c.id == table_to_show ? 'block' : 'none'
+  }
+  for (let c of document.querySelector('#tabs').children) {
+    c.style.backgroundColor = c.id == tab_to_show ? '#00bb00' : 'white'
+    c.style.color = c.id == tab_to_show ? 'white' : 'black'
+  }
+}
+
 window.onload = () => {
   document.addEventListener('keydown', keylistener)
   document.getElementById('csv_data').addEventListener('click', csvlistener);
+  document.getElementById('tabs').addEventListener('click', tablistener);
 }
 
 %= end
@@ -320,24 +354,6 @@ div.current_pos {
   top:0px;
   right:2px;
 }
-div.geoform {
-  display:grid;
-  border: 1px solid #ddd;
-  padding:4px;
-  grid-template-columns: 1fr 1fr;
-}
-div.selector {
-  display:grid;
-  grid-template-columns: 1fr 3fr;
-}
-div.triple {
-  display:grid;
-  grid-template-columns: 3rem 10rem 1rem;
-  column-gap: 1rem;
-}
-.wide {
-  width:20rem;
-}
 div.csv_files a {
   border:1px solid #99aa99;
   display:inline-block;
@@ -353,6 +369,20 @@ div.csv_files a {
 a {
   text-decoration:none;
   color:#004400;
+}
+div#tabs div {
+  display:inline-block;
+  border:1px solid #0b0;
+  padding-left:2px;
+  padding-right:2px;
+}
+div#tabs div:hover {
+  display:inline-block;
+  border:1px solid #0b0;
+  background-color: #0b0;
+  color:white;
+  padding-left:2px;
+  padding-right:2px;
 }
 
 @@ layouts/default.html.ep
