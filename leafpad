@@ -23,8 +23,12 @@ any '/' => sub ($c) {
   $c->stash(lat => $lat);
   $c->stash(lon => $lon);
   my $send = [map +{geojson => $_, label => 'shape'}, @geodata];
-  $c->stash(geofiles  => []);
-  $c->stash(csv_files => [$data_dir->list({dir => 1})->grep(sub { /.csv/ || -d "$_" })->sort->each]);
+  $c->stash(geofiles => []);
+  $c->stash(
+    csv_files => [
+      $data_dir->list({dir => 1})->grep(sub { /.csv/ || -d "$_" })->sort->each
+    ]
+  );
   $c->render(template => 'index');
 } => 'index';
 
@@ -50,7 +54,12 @@ package Geofile {
     my $csv = Text::CSV_XS->new();
     open my $fh, "<", "$name" or die "$name: $!";
     my %seen;
-    my @header = $csv->header($fh, {munge_column_names => sub { $seen{$_[0]}++ ? $_[0] . '-' . $seen{$_[0]} : $_[0] }});
+    my @header = $csv->header(
+      $fh,
+      { munge_column_names =>
+          sub { $seen{$_[0]}++ ? $_[0] . '-' . $seen{$_[0]} : $_[0] }
+      }
+    );
     $csv->parse("$name") or die $!;
     my $data = $csv->getline_hr_all($fh);
     close $fh;
@@ -64,7 +73,8 @@ get '/show/csv/:name' => sub ($c) {
   $c->stash(csv_files => []);
   my $io = $data_dir->child("$name");
   if (-d $io) {
-    $c->stash(geofiles => $io->list->grep(sub { /\.csv/ })->map(sub { Geofile->ingest("$_") }));
+    $c->stash(geofiles =>
+        $io->list->grep(sub { /\.csv/ })->map(sub { Geofile->ingest("$_") }));
   } else {
     $c->stash(geofiles => [Geofile->ingest("$io.csv")]);
   }
