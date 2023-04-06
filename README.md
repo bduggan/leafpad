@@ -42,9 +42,6 @@ But wait, there's more!
      ./leafpad daemon
      ```
 
-4. Open a browser at http://localhost:3000 and click on "demo" to go to http://localhost:3000/show/csv/demo
+5. Open a browser at http://localhost:3000 and click on "demo" to go to http://localhost:3000/show/csv/demo
 
-5. You are now viewing the "demo" file which is in the data/ directory.  It looks like this: https://git.sr.ht/~bduggan/leafpad/tree/master/item/data/demo.csv
-
-6. New files placed along side it will automatically be viewable in the browser.
-
+6. Enjoy!
