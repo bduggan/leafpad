@@ -47,9 +47,9 @@ package Geofile {
 }
 
 get '/' => sub ($c) {
-  $c->stash(zoom => $c->param('zoom') || $default_zoom);
-  $c->stash(lat  => $c->param('lat') || $default_lat);
-  $c->stash(lon  => $c->param('lon') || $default_lon);
+  $c->stash(zoom     => $c->param('zoom') || $default_zoom);
+  $c->stash(lat      => $c->param('lat')  || $default_lat);
+  $c->stash(lon      => $c->param('lon')  || $default_lon);
   $c->stash(geofiles => []);
   $c->stash(
     csv_files => [
@@ -59,12 +59,12 @@ get '/' => sub ($c) {
 } => 'index';
 
 get '/show/csv/:name' => sub ($c) {
-  $c->stash(zoom => $c->param('zoom') || $default_zoom);
-  $c->stash(lat  => $c->param('lat') || $default_lat);
-  $c->stash(lon  => $c->param('lon') || $default_lon);
+  $c->stash(zoom      => $c->param('zoom') || $default_zoom);
+  $c->stash(lat       => $c->param('lat')  || $default_lat);
+  $c->stash(lon       => $c->param('lon')  || $default_lon);
   $c->stash(csv_files => []);
   my $name = $c->stash('name');
-  my $io = $data_dir->child("$name");
+  my $io   = $data_dir->child("$name");
   if (-d $io) {
     $c->stash(geofiles =>
         $io->list->grep(sub { /\.csv/ })->map(sub { Geofile->ingest("$_") }));
