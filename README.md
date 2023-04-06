@@ -39,7 +39,7 @@ But wait, there's more!
 
 4. Start the web server
      ```
-     morbo ./leafpad
+     ./leafpad daemon
      ```
 
 4. Open a browser at http://localhost:3000 and click on "demo" to go to http://localhost:3000/show/csv/demo
