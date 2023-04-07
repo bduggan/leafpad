@@ -14,7 +14,7 @@ app->defaults(zoom => $default_zoom);
 package Geofile {
   use Mojo::Base qw/-base -signatures/;
   use Mojo::File qw/path/;
-  use Text::CSV_XS;
+  use Text::CSV_XS qw/csv/;
 
   has 'geodata';
   has 'header';
@@ -30,39 +30,35 @@ package Geofile {
   }
 
   sub read_file($name) {
-    my $csv = Text::CSV_XS->new();
-    open my $fh, "<", "$name" or die "$name: $!";
-    my %seen;
-    my @header = $csv->header(
-      $fh,
-      { munge_column_names =>
-          sub { $seen{$_[0]}++ ? $_[0] . '-' . $seen{$_[0]} : $_[0] }
-      }
-    );
-    $csv->parse("$name") or die $!;
-    my $data = $csv->getline_hr_all($fh);
-    close $fh;
-    (\@header, $data);
+   my %seen;
+   my @header;
+   my $data = csv(in => $name,
+                 headers => sub {
+                   my $nxt = ( $seen{$_[0]}++ ? $_[0] . '-' . $seen{$_[0]} : $_[0] );
+                   push @header, $nxt;
+                   $nxt;
+                 });
+   (\@header, $data);
   }
 }
 
-get '/' => sub($c) {
-  $c->stash(zoom     => $c->param('zoom') || $default_zoom);
-  $c->stash(lat      => $c->param('lat')  || $default_lat);
-  $c->stash(lon      => $c->param('lon')  || $default_lon);
-  $c->stash(geofiles => []);
-  $c->stash(
-    csv_files => [
-      $data_dir->list({dir => 1})->grep(sub { /.csv/ || -d "$_" })->sort->each
-    ]
-  );
-} => 'index';
-
-get '/show/csv/:name' => sub($c) {
+app->helper(set_defaults => sub($c) {
   $c->stash(zoom      => $c->param('zoom') || $default_zoom);
   $c->stash(lat       => $c->param('lat')  || $default_lat);
   $c->stash(lon       => $c->param('lon')  || $default_lon);
+  $c->stash(geofiles  => []);
   $c->stash(csv_files => []);
+});
+  
+get '/' => sub($c) {
+  $c->set_defaults;
+  $c->stash(csv_files => [
+      $data_dir->list({dir => 1})->grep(sub { /.csv/ || -d "$_" })->sort->each
+  ]);
+} => 'index';
+
+get '/show/csv/*name' => sub($c) {
+  $c->set_defaults;
   my $name = $c->stash('name');
   my $io   = $data_dir->child("$name");
   if (-d $io) {
@@ -149,15 +145,15 @@ __DATA__
 
 var highlight = {
     "fillColor": "#000000",
-    "color": "#ff7A00",
-    "weight" : 10,
-    "opacity": 0.4
+    "color": "#ff8c00",
+    "weight" : 5,
+    "opacity": 0.9
 };
 
 var geostyle = {
     "fillColor": "#ccfaa0",
-    "fillOpacity" : 0.1,
-    "color": "#000000",
+    "fillOpacity" : 0.05,
+    "color": "#552255",
     "weight": 1,
     "radius": 3,
     "opacity": 0.9
