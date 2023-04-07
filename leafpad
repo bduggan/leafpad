@@ -204,7 +204,7 @@ var all_layers = {}
        % }
        geolayer.on('mouseover', function() {
          highlighted = this; this.setStyle(highlight);
-         let j = <%== Mojo::JSON::encode_json($_) =%>;
+         let j = <%== b(Mojo::JSON::encode_json($_))->decode =%>;
          document.getElementById('details').innerHTML = make_details(j);
        })
        geolayer.on('mouseout', function() { this.resetStyle() })
