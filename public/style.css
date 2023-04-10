@@ -1,0 +1,69 @@
+div#csv_data {
+  overflow-y: scroll;
+  border:1px solid #888;
+}
+.panels {
+  display:grid;
+  grid-template-rows: 70vh 20vh;
+  grid-template-columns: 1fr;
+}
+#details {
+  border: 1px solid grey;
+  padding: 2px;
+  margin: 4px;
+  box-shadow: 1px 2px 4px #888888;
+  position:absolute;
+  top:0;
+  right:0;
+  background-color:white;
+}
+#map {
+  border:1px solid #888;
+  cursor:crosshair;
+}
+table {
+  border-collapse: collapse;
+  border-color: #ddd;
+}
+td {
+  border: 1px solid #ddd;
+}
+div.controls {
+  position:relative;
+}
+div.current_pos {
+  position:absolute;
+  top:0px;
+  right:2px;
+}
+div.csv_files a {
+  border:1px solid #99aa99;
+  display:inline-block;
+  margin-left:1px;
+  margin-bottom:1px;
+  padding-left:1px;
+  padding-right:1px;
+  whitespace:no-break;
+  background-color:#ddffdd;
+  text-decoration:none;
+  color:black;
+}
+a {
+  text-decoration:none;
+  color:#004400;
+}
+div#tabs div {
+  display:inline-block;
+  border:1px solid #0b0;
+  padding-left:2px;
+  padding-right:2px;
+}
+div#tabs div:hover {
+  display:inline-block;
+  border:1px solid #0b0;
+  background-color: #0b0;
+  color:white;
+  padding-left:2px;
+  padding-right:2px;
+}
+
