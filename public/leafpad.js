@@ -211,8 +211,11 @@ function setup_data(panels) {
   }
 }
 
+console.log('leafpad loading');
+
 // main()
 window.onload = () => {
+  console.log('setting up');
   let panels = setup_panels()
   setup_map()
   setup_data(panels)
