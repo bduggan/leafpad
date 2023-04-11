@@ -231,3 +231,6 @@ function main() {
 window.leafpad_main = function leafpad_main() { main() }
 
 window.onload = () => { main() }
+
+main()
+console.log('leafpad loaded.');
