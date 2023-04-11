@@ -167,7 +167,7 @@ function txt(attrs, inner) {
 function setup_panels() {
   let main = document.getElementById('leafpad')
   if (!main) {
-    alert('no element with id="leafpad" was found, please add one')
+    console.log('no element with id="leafpad" was found, please add one')
     return
   }
   main.appendChild(div({ id: 'details' }))
@@ -211,10 +211,13 @@ function setup_data(panels) {
   }
 }
 
-console.log('leafpad loading');
+console.log('leafpad loading.');
 
-// main()
-window.onload = () => {
+var loaded = false;
+
+function main() {
+  if (loaded) return;
+  loaded = true;
   console.log('setting up');
   let panels = setup_panels()
   setup_map()
@@ -224,3 +227,5 @@ window.onload = () => {
   document.getElementById('tabs').addEventListener('click', tablistener);
   map.addEventListener('mousemove', mouselistener)
 }
+
+window.onload = () => { main() }
