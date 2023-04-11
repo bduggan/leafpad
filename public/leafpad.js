@@ -203,7 +203,7 @@ function setup_data(panels) {
       for (let col of d.columns) {
         let cell = div({class: 'csv_cell', "data-query_name" : d.queryName, "data-col_name" : col.name, "data-row_number" : row_number})
         cell.appendChild( document.createTextNode( row[col.name] ) )
-        tr.appendChild( elt('td', {} , cell ) )
+        tr.appendChild( elt('td', { class: 'csv_td' } , cell ) )
       }
       table.appendChild(tr)
       row_number += 1;

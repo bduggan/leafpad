@@ -66,4 +66,14 @@ div#tabs div:hover {
   padding-left:2px;
   padding-right:2px;
 }
-
+div.csv_cell {
+  height: 20px;
+  overflow: hidden;
+}
+div.csv_cell:hover {
+  max-height: 100px;
+  height:inherit;
+  overflow-y:scroll;
+}
+td.csv_td {
+}
