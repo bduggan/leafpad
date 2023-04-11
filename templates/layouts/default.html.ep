@@ -9,6 +9,8 @@
      crossorigin=""></script>
     <script src="https://unpkg.com/leaflet-providers@1.13.0/leaflet-providers.js"></script>
   %= stylesheet '/style.css'
+  %= javascript "/datasets/$name/data.js"
+  %= javascript '/leafpad.js'
   <title><%= title %></title>
 </head>
   <body><%= content %></body>

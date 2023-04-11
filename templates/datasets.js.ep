@@ -1,0 +1,17 @@
+var datasets = [];
+
+% for my $d (@$geofiles) {
+  {
+    let columns = []
+    % for my $h (@{ $d->header }) {
+      columns.push({ "type" : "unknown", "name" : "<%= uc $h %>" })
+    % }
+    let content = []
+    % my $i = 0;
+    % for my $row (@{ $d->geodata }) {
+      content.push(<%== b(Mojo::JSON::encode_json({  map { uc $_ => $row->{$_} } @{ $d->header }  }))->decode %>)
+    % }
+    datasets.push( { "queryName" : <%= $d->name %>, columns: columns, content: content } )
+  }
+% }
+

@@ -70,4 +70,16 @@ get '/show/csv/*name' => sub($c) {
   $c->render(template => 'index');
 } => 'show';
 
+get 'datasets/*name/data.js' => { format => 'js' } => sub($c) {
+  my $name = $c->stash('name');
+  my $io = $data_dir->child($name);
+  if (-d $io) {
+    $c->stash(geofiles => $io->list->grep(sub { /\.csv/ })->map(sub { Geofile->ingest("$_") }));
+  } else {
+    $c->stash(geofiles => [Geofile->ingest("$io.csv")]);
+  }
+
+  $c->render('datasets', format => 'js');
+} => 'datasets';
+
 app->start;
