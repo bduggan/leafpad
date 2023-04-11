@@ -49,7 +49,7 @@ app->helper(set_defaults => sub($c) {
   $c->stash(geofiles  => []);
   $c->stash(csv_files => []);
 });
-  
+
 get '/' => sub($c) {
   $c->set_defaults;
   $c->stash(csv_files => [

@@ -125,7 +125,7 @@ const csvlistener = (e) => {
   map.flyToBounds(layer, { maxZoom: 17 })
 
   if (last_cell)    last_cell.style.backgroundColor = 'white'
-  if (highlighted)  highlighted.resetStyle() 
+  if (highlighted)  highlighted.resetStyle()
   cell.style.backgroundColor = '#ddddff'
   last_cell                  = cell
   highlighted                = layer
