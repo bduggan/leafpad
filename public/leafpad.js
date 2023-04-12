@@ -234,6 +234,11 @@ function setup_data(panels) {
   }
   let tables = csv_data.appendChild( div( {id: 'csv_tables'} ) )
   for (let d of datasets) {
+    if (d.oversized) {
+      console.log(`skipping oversized dataset ${d.queryName}`)
+      tables.appendChild( elt('div', { class: 'error' }, `sorry, "${d.queryName}" was too large to load` ) )
+      continue;
+    }
     let row_number = 0;
     let table = elt('table', { class: 'csv_data', id: `table_${d.queryName}` })
     tables.appendChild(table)

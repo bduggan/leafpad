@@ -92,4 +92,9 @@ div.geo_cell .geo_content {
 div.geo_cell:hover .geo_content {
   display: block;
 }
-
+div.error {
+  background-color: #ffdddd;
+  color: black;
+  border:1px solid #ddaaaa;
+  text-align: center;
+}

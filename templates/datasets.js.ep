@@ -16,7 +16,8 @@ var datasets = [];
        columns: columns,
        content: content,
        count: <%= +@{ $d->geodata } %>,
-       csv: "<%= url_for('csv', name => $d->name)->to_abs %>"
+       csv: "<%= url_for('csv', name => $d->name)->to_abs %>",
+       oversized: false
        } )
   }
 % }
