@@ -228,6 +228,7 @@ function describe_geodata(geo) {
 function setup_data(panels) {
   let csv_data = panels.appendChild(elt('div',{id: 'csv_data'}))
   let tabs = csv_data.appendChild(div({id:'tabs'}))
+  console.log(`loading datasets: ${datasets.length}`)
   for (let d of datasets) {
     tabs.appendChild( txt({id: d.queryName}, `${d.queryName}`) )
   }
@@ -241,6 +242,7 @@ function setup_data(panels) {
       elt('a', { href: d.csv, target: '_blank', class: 'download' }, 'download csv')
     ))
     table.appendChild( elt('tr', {}, ...d.columns.map( c => elt('th', {}, c.name) ) ) )
+    console.log(`rows in dataset ${d.queryName} : ${d.count}`)
     for ( let row of d.content ) {
       let tr = elt('tr',{})
       for (let col of d.columns) {
@@ -269,7 +271,10 @@ console.log('leafpad loading.');
 var loaded = false;
 
 function main() {
-  if (loaded) return;
+  if (loaded) {
+    console.log('data already loaded');
+    return;
+  }
   loaded = true;
   console.log('setting up');
   let panels = setup_panels()
