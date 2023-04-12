@@ -75,5 +75,11 @@ div.csv_cell:hover {
   height:inherit;
   overflow-y:scroll;
 }
-td.csv_td {
+td.csv_td { }
+a.download {
+  float:right;
+  padding-right: 5px;
+  padding-left: 5px;
+  border: 1px solid #9a9;
+  background-color: #dfd;
 }

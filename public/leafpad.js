@@ -196,7 +196,10 @@ function setup_data(panels) {
     let row_number = 0;
     let table = elt('table', { class: 'csv_data', id: `table_${d.queryName}` })
     tables.appendChild(table)
-    table.appendChild(elt('caption', {},`${d.queryName}`))
+    table.appendChild(elt('caption', {},
+      `${d.queryName} (${d.count} row${d.count == 1 ? '' : 's'})`,
+      elt('a', { href: d.csv, target: '_blank', class: 'download' }, 'download csv')
+    ))
     table.appendChild( elt('tr', {}, ...d.columns.map( c => elt('th', {}, c.name) ) ) )
     for ( let row of d.content ) {
       let tr = elt('tr',{})
