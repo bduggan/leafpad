@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html>
+<head>
+  %= stylesheet '/style.css'
+  <title><%= title %></title>
+</head>
+  <body><%= content %>
+  %= javascript '/leafpad.js'
+  </body>
+</html>

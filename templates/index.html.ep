@@ -1,9 +1,9 @@
-% use Mojo::Collection qw/c/;
-% layout 'default';
-% title 'leafpad';
+Choose a file:
+<br>
 
-<h3>
-%= link_to 'leafpad' => 'index'
-</h3>
-
-<div id='leafpad'></div>
+% for my $csv ( $csv_files->each ) {
+  %= link_to 'show', { name => $csv->basename('.csv') } => begin
+  %= $csv->basename('.csv')
+  %= end
+  <br>
+% }

@@ -1,0 +1,8 @@
+% use Mojo::Collection qw/c/;
+% title 'leafpad';
+
+<h3>
+%= link_to 'leafpad' => 'index'
+</h3>
+
+<div id='leafpad'></div>

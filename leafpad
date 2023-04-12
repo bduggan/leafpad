@@ -3,13 +3,13 @@ use Mojolicious::Lite -signatures;
 use Mojo::File       qw/path/;
 use Mojo::Collection qw/c/;
 
-my $data_dir = app->home->child('data');
+my $data_dir = path(app->home->child('data'));
 
 my $default_zoom = 5;
 my $default_lat  = 37.09;
 my $default_lon  = -96.7;
 
-app->defaults(zoom => $default_zoom);
+app->defaults(zoom => $default_zoom, layout => 'default' );
 
 package Geofile {
   use Mojo::Base qw/-base -signatures/;
@@ -50,11 +50,9 @@ app->helper(set_defaults => sub($c) {
   $c->stash(csv_files => []);
 });
 
-get '/' => sub($c) {
+get '/' => { layout => 'bare' } => sub($c) {
   $c->set_defaults;
-  $c->stash(csv_files => [
-      $data_dir->list({dir => 1})->grep(sub { /.csv/ || -d "$_" })->sort->each
-  ]);
+  $c->stash(csv_files => $data_dir->list({dir => 1})->grep(sub { /.csv/ || -d "$_" })->sort );
 } => 'index';
 
 get '/show/csv/*name' => sub($c) {
@@ -67,7 +65,7 @@ get '/show/csv/*name' => sub($c) {
   } else {
     $c->stash(geofiles => [Geofile->ingest("$io.csv")]);
   }
-  $c->render(template => 'index');
+  $c->render(template => 'show');
 } => 'show';
 
 get 'datasets/*name/data.js' => { format => 'js' } => sub($c) {
@@ -81,5 +79,10 @@ get 'datasets/*name/data.js' => { format => 'js' } => sub($c) {
 
   $c->render('datasets', format => 'js');
 } => 'datasets';
+
+get 'csv/*name' => sub ($c) {
+  my $io = $data_dir->child($c->stash('name') . '.csv');
+  $c->render( text => $io->slurp, format => 'txt' );
+} => 'csv';
 
 app->start;

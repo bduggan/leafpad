@@ -11,7 +11,13 @@ var datasets = [];
     % for my $row (@{ $d->geodata }) {
       content.push(<%== b(Mojo::JSON::encode_json({  map { uc $_ => $row->{$_} } @{ $d->header }  }))->decode %>)
     % }
-    datasets.push( { "queryName" : "<%= $d->name %>", columns: columns, content: content } )
+    datasets.push( {
+       queryName: "<%= $d->name %>",
+       columns: columns,
+       content: content,
+       count: <%= +@{ $d->geodata } %>,
+       csv: "<%= url_for('csv', name => $d->name)->to_abs %>"
+       } )
   }
 % }
 
