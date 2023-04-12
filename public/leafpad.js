@@ -192,7 +192,9 @@ function setup_panels() {
 const is_coord = (x) => x && x.length == 2 && typeof(x[0]) == 'number'
 
 function describe_geodata(geo) {
+  if (!geo) return
   let j = JSON.parse(geo)
+  if (!j) return
   let geom = j
   if (j.features && j.features.length == 1 && j.features[0].geometry) {
     geom = j.features[0].geometry
