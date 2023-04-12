@@ -17,8 +17,20 @@ But wait, there's more!
 * click on geojson columns in the csv to fly there on the map
 * put multiple csv files into a directory, and view them all at once
 * use the mouse to scroll/pan
-* type "l" to generate a link with the current zoom and lat/lon
 * okay, that's really it
+
+# Running in mode analytics
+
+To use just the javascript in mode analytics, include the following in the HTML
+
+```
+<div id="leafpad"></div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" >
+<link rel="stylesheet" href="https://bduggan.github.io/leafpad/public/style.css">
+<script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-providers@1.13.0/leaflet-providers.js"></script>
+<script src="https://bduggan.github.io/leafpad/public/leafpad.js"></script>
+```
 
 # Installation and running
 
@@ -44,3 +56,4 @@ But wait, there's more!
 5. Open a browser at http://localhost:3000 and click on "demo" to go to http://localhost:3000/show/csv/demo
 
 6. Enjoy!
+
