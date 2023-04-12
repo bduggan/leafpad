@@ -156,6 +156,7 @@ function elt(type, attrs, ...children) {
   }
 
   for (let child of children) {
+    if (!child) continue;
     if (typeof child != "string") node.appendChild(child);
     else node.appendChild(document.createTextNode(child));
   }
@@ -192,9 +193,9 @@ function setup_panels() {
 const is_coord = (x) => x && x.length == 2 && typeof(x[0]) == 'number'
 
 function describe_geodata(geo) {
-  if (!geo) return
+  if (!geo) return "null"
   let j = JSON.parse(geo)
-  if (!j) return
+  if (!j) return "null"
   let geom = j
   if (j.features && j.features.length == 1 && j.features[0].geometry) {
     geom = j.features[0].geometry
