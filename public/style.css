@@ -25,6 +25,9 @@ table {
   border-collapse: collapse;
   border-color: #ddd;
 }
+table.csv_data {
+  width: 100%;
+}
 td {
   border: 1px solid #ddd;
 }
@@ -67,13 +70,8 @@ div#tabs div:hover {
   padding-right:2px;
 }
 div.csv_cell {
-  height: 20px;
-  overflow: hidden;
 }
 div.csv_cell:hover {
-  max-height: 100px;
-  height:inherit;
-  overflow-y:scroll;
 }
 td.csv_td { }
 a.download {
@@ -83,3 +81,15 @@ a.download {
   border: 1px solid #9a9;
   background-color: #dfd;
 }
+div.geo_cell {
+}
+div.geo_cell button {
+  float:right;
+}
+div.geo_cell .geo_content {
+  display: none;
+}
+div.geo_cell:hover .geo_content {
+  display: block;
+}
+

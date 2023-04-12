@@ -36,6 +36,8 @@ function generate_link() {
   el.innerHTML = `<a href=${link}>${link}</a>`
 }
 
+const is_geo_col = (name) => name.toLowerCase().endsWith('geojson')
+
 function setup_map() {
   let q = new URLSearchParams(location.search)
   let params = Object.fromEntries(q.entries())
@@ -55,7 +57,7 @@ function setup_map() {
       all_layers[dataset.queryName][row_number] = {}
       for (let col_spec of dataset.columns) {
         let col = col_spec.name
-        if (!col.toLowerCase().endsWith('geojson')) continue;
+        if (!is_geo_col(col)) continue;
         let geom = JSON.parse(row[col])
         let geolayer = L.geoJSON(geom,
                { style: geostyle, pointToLayer: function (f,latlng) { return L.circleMarker(latlng,geostyle) } })
@@ -126,9 +128,11 @@ const csvlistener = (e) => {
 
   if (last_cell)    last_cell.style.backgroundColor = 'white'
   if (highlighted)  highlighted.resetStyle()
-  cell.style.backgroundColor = '#ddddff'
-  last_cell                  = cell
+  let td = cell.closest("td")
+  td.style.backgroundColor = '#ddddff'
+  last_cell                  = td
   highlighted                = layer
+  console.log(`highlighting ${data.row_number} ${data.col_name}`)
   layer.setStyle(highlight)
 }
 const tablistener = (e) => {
@@ -172,7 +176,7 @@ function setup_panels() {
   }
   main.appendChild(div({ id: 'details' }))
   let controls = main.appendChild( div( { class: 'controls' } ) )
-  controls.appendChild( txt( {}, 'leafpad' ) ) 
+  controls.appendChild( txt( {}, 'leafpad' ) )
   let pos = elt( 'div', {class: 'current_pos', title: 'lat,lon', alt: 'lat,lon'},
       elt('span',{id:'lat'}),
       ',',
@@ -183,6 +187,38 @@ function setup_panels() {
   let panels = main.appendChild(div({ class: 'panels' }))
   panels.appendChild(div({ id: 'map' }))
   return panels
+}
+
+const is_coord = (x) => x && x.length == 2 && typeof(x[0]) == 'number'
+
+function describe_geodata(geo) {
+  let j = JSON.parse(geo)
+  let geom = j
+  if (j.features && j.features.length == 1 && j.features[0].geometry) {
+    geom = j.features[0].geometry
+  }
+  if (j.feature && j.feature.geometry) {
+    geom = j.feature.geometry
+  }
+  if (geom.type && geom.type == "Feature" && geom.geometry){
+    geom = geom.geometry
+  }
+  let desc = `${geom.type}`
+  if (geom) {
+    let c = geom.coordinates
+    if (is_coord(c)) {
+      desc += `(${c})`
+    } else if (c && is_coord(c[0])) {
+      desc += `, ${c.length} coordinates`
+    } else if (c && c[0] && is_coord(c[0][0])) {
+      desc += `, ${c[0].length} coordinates`
+    } else if (c && c[0] && c[0][0] ** is_coord(c[0][0])) { // multipolygon
+      desc += `, ${c[0][0].length} coordinates`
+    }
+  } else {
+    desc += `${j.type}`
+  }
+  return desc
 }
 
 function setup_data(panels) {
@@ -204,8 +240,18 @@ function setup_data(panels) {
     for ( let row of d.content ) {
       let tr = elt('tr',{})
       for (let col of d.columns) {
-        let cell = div({class: 'csv_cell', "data-query_name" : d.queryName, "data-col_name" : col.name, "data-row_number" : row_number})
-        cell.appendChild( document.createTextNode( row[col.name] ) )
+        let data_attrs = { "data-query_name" : d.queryName, "data-col_name" : col.name, "data-row_number" : row_number }
+        let cell = div({class: 'csv_cell', ...data_attrs } )
+        if (is_geo_col(col.name)) {
+          cell.appendChild(
+            elt( 'div', { class: 'geo_cell', ...data_attrs },
+                describe_geodata(row[col.name]),
+                elt( 'button', { class: 'geocopy', onclick: `{window.open().document.write(${ JSON.stringify(row[col.name]) });}`  }, '📋'),
+               )
+          )
+        } else { 
+          cell.appendChild( document.createTextNode( row[col.name] ) )
+        }
         tr.appendChild( elt('td', { class: 'csv_td' } , cell ) )
       }
       table.appendChild(tr)
