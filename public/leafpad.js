@@ -68,6 +68,7 @@ function setup_map() {
          geolayer.on('mouseout', function() { this.resetStyle() })
          geolayer.on('click', function() { this.resetStyle(); this.bringToBack(); })
          all_layers[dataset.queryName][row_number][col] = geolayer;
+         console.log(`loaded row ${row_number} for ${dataset.queryName}`)
          geolayer.row_number = row_number
          geolayer.col_name = col
          geolayer.query_name= dataset.queryName
