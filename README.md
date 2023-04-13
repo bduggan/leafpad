@@ -9,7 +9,7 @@ Leafpad is a simple way of viewing csv files that contain geojson columns.
 1. Start a local web server
 1. Put a csv file into the `data` directory (demo.csv is there by default)
 2. Open a browser to http://localhost:3000/show/csv/demo (where "demo" is the base filename)
-3. Columns whose names end in _geojson will be displayed as geojsons
+3. Columns whose names end in `geojson` will be displayed as geojsons
 5. That's it!
 
 But wait, there's more!
@@ -31,6 +31,8 @@ To use just the javascript in mode analytics, include the following in the HTML
 <script src="https://unpkg.com/leaflet-providers@1.13.0/leaflet-providers.js"></script>
 <script src="https://bduggan.github.io/leafpad/public/leafpad.js"></script>
 ```
+
+Then any column in the resultset ending in `geojson` will be placed on the map.
 
 # Installation and running
 
