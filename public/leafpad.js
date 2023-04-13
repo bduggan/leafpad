@@ -25,7 +25,7 @@ var markerstyle = {
 };
 var all_layers = {}
 var map;
-var highlighted = null;
+var highlighted_layer = null;
 
 // functions
 function generate_link() {
@@ -39,8 +39,8 @@ function generate_link() {
 const is_geo_col = (name) => name.toLowerCase().endsWith('geojson')
 
 function highlight_layer(l) {
-  if (highlighted)  highlighted.resetStyle()
-  highlighted = l
+  if (highlighted_layer)  highlighted_layer.resetStyle()
+  highlighted_layer = l
   l.setStyle(highlight)
 }
 
@@ -121,8 +121,10 @@ const keylistener = (event) => {
   if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey)
     return
   const keyName = event.key;
-  if (keyName === 'l')
-    generate_link()
+  if (keyName === 'l') generate_link()
+  if (keyName === 'b') {
+    if (highlighted_layer) highlighted_layer.bringToBack()
+  }
 }
 
 let last_cell = null
