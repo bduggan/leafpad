@@ -38,6 +38,12 @@ function generate_link() {
 
 const is_geo_col = (name) => name.toLowerCase().endsWith('geojson')
 
+function highlight_layer(l) {
+  if (highlighted)  highlighted.resetStyle()
+  highlighted = l
+  l.setStyle(highlight)
+}
+
 function setup_map() {
   let q = new URLSearchParams(location.search)
   let params = Object.fromEntries(q.entries())
@@ -62,13 +68,22 @@ function setup_map() {
         let geolayer = L.geoJSON(geom,
                { style: geostyle, pointToLayer: function (f,latlng) { return L.circleMarker(latlng,geostyle) } })
         geolayer.on('mouseover', function() {
-           highlighted = this; this.setStyle(highlight);
+           highlight_layer(this);
            document.getElementById('details').innerHTML = make_details(row);
          })
          geolayer.on('mouseout', function() { this.resetStyle() })
-         geolayer.on('click', function() { this.resetStyle(); this.bringToBack(); })
+         geolayer.on('click', function() {
+           highlight_layer(this)
+           let col = this.col_name;
+           let query = this.query_name;
+           let row_number = this.row_number;
+           let id = `cell_${query}_${col}_${row_number}`
+           show_tab(`${query}`)
+           let cell = document.getElementById(id)
+           cell.scrollIntoView({alignToTop: true})
+           highlight_csv_cell(cell)
+         })
          all_layers[dataset.queryName][row_number][col] = geolayer;
-         console.log(`loaded row ${row_number} for ${dataset.queryName}`)
          geolayer.row_number = row_number
          geolayer.col_name = col
          geolayer.query_name= dataset.queryName
@@ -88,7 +103,6 @@ function make_details(j) {
   out += "<tr><td>" + k +  "</td><td>"
   if (j[k].length > 50) {
      out += j[k].substr(0,50) + '...'
-     console.log(`${k} is`,j[k])
   } else {
      out += j[k]
   }
@@ -112,42 +126,42 @@ const keylistener = (event) => {
 }
 
 let last_cell = null
+
+function highlight_csv_cell(cell) {
+  if (last_cell)    last_cell.style.backgroundColor = 'white'
+  let td = cell.closest("td")
+  td.style.backgroundColor = '#ddddff'
+  last_cell                = td
+}
+
 const csvlistener = (e) => {
   let cell = e.target
   let data = cell.dataset
   let query_name = data.query_name
-  if (!query_name) {
-    return
-  }
+  if (!query_name) return;
+  if (!all_layers[query_name][data.row_number]) return // clicked on a tab
   let layer = all_layers[query_name][data.row_number][data.col_name]
   if (!layer) {
-    console.log(`row ${data.row_number}, col ${data.col_name} not found`)
     return
   }
-
   map.flyToBounds(layer, { maxZoom: 17 })
-
-  if (last_cell)    last_cell.style.backgroundColor = 'white'
-  if (highlighted)  highlighted.resetStyle()
-  let td = cell.closest("td")
-  td.style.backgroundColor = '#ddddff'
-  last_cell                  = td
-  highlighted                = layer
-  console.log(`highlighting ${data.row_number} ${data.col_name}`)
-  layer.setStyle(highlight)
+  highlight_csv_cell(cell)
+  highlight_layer(layer)
 }
-const tablistener = (e) => {
-  let table_to_show = `table_${e.target.id}`
-  let tab_to_show   = e.target.id
-  console.log(`hi: ${table_to_show}, ${tab_to_show}`);
+
+function show_tab(query_name) {
+  let table_to_show = `table_${query_name}`
+  let tab_to_show   = `tab_${query_name}`
   for (let c of document.querySelector('#csv_tables').children) {
-    c.style.display = c.id == table_to_show ? 'block' : 'none'
+    c.style.display = c.id == table_to_show ? '' : 'none'
   }
   for (let c of document.querySelector('#tabs').children) {
     c.style.backgroundColor = c.id == tab_to_show ? '#00bb00' : 'white'
     c.style.color           = c.id == tab_to_show ? 'white' : 'black'
   }
 }
+
+const tablistener = (e) => show_tab(e.target.dataset.query_name)
 
 function elt(type, attrs, ...children) {
   let node = document.createElement(type);
@@ -230,7 +244,7 @@ function setup_data(panels) {
   let tabs = csv_data.appendChild(div({id:'tabs'}))
   console.log(`loading datasets: ${datasets.length}`)
   for (let d of datasets) {
-    tabs.appendChild( txt({id: d.queryName}, `${d.queryName}`) )
+    tabs.appendChild( txt({id: `tab_${d.queryName}`, "data-query_name" : `${d.queryName}`}, `${d.queryName}`) )
   }
   let tables = csv_data.appendChild( div( {id: 'csv_tables'} ) )
   for (let d of datasets) {
@@ -263,7 +277,9 @@ function setup_data(panels) {
         } else { 
           cell.appendChild( document.createTextNode( row[col.name] ) )
         }
-        tr.appendChild( elt('td', { class: 'csv_td' } , cell ) )
+        let new_id = `cell_${d.queryName}_${col.name}_${row_number}`
+        console.log(`adding id ${new_id}`)
+        tr.appendChild( elt('td', { class: 'csv_td', id: new_id } , cell ) )
       }
       table.appendChild(tr)
       row_number += 1;
