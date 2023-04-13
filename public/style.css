@@ -15,7 +15,8 @@ div#csv_data {
   position:absolute;
   top:0;
   right:0;
-  background-color:white;
+  background-color:rgba(185,168,180,0.8);
+  z-index: 1000;
 }
 #map {
   border:1px solid #888;

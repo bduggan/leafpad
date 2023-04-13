@@ -82,7 +82,7 @@ function setup_map() {
 function make_details(j) {
  let out = '<table>'
  for (let k of Object.keys(j)) {
-  if (k.match(/geojson$/)) {
+  if (is_geo_col(k)) {
     continue;
   }
   out += "<tr><td>" + k +  "</td><td>"
