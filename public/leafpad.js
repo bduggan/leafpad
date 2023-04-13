@@ -193,6 +193,7 @@ function setup_panels() {
   main.appendChild(div({ id: 'details' }))
   let controls = main.appendChild( div( { class: 'controls' } ) )
   controls.appendChild( txt( {}, 'leafpad' ) )
+  controls.appendChild( txt( { id: 'current_link' }, '' ) )
   let pos = elt( 'div', {class: 'current_pos', title: 'lat,lon', alt: 'lat,lon'},
       elt('span',{id:'lat'}),
       ',',
