@@ -18,6 +18,7 @@ But wait, there's more!
 * click on geojson columns in the csv to fly there on the map
 * put multiple csv files into a directory, and view them all at once
 * use the mouse to scroll/pan
+* also a column named `foo_style` will be treated as a JSON string that represents style attributes for the geojson column named `foo`.  The valid style attributes can be found [here](https://leafletjs.com/reference.html#path-option)
 * okay, that's really it
 * one more thing:
 

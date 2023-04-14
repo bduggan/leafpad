@@ -72,8 +72,18 @@ function setup_map() {
           console.log("error parsing geojson", e)
           continue
         }
+        let layer_style = geostyle
+        let custom_style = row[`${col}_STYLE`] || row[`${col}_style`]
+        if (custom_style) {
+          try {
+            layer_style = JSON.parse(custom_style)
+            console.log(`new style is ${layer_style}`)
+          } catch {
+            console.log(`could not parse style for ${col}: ${custom_style}`)
+          }
+        }
         let geolayer = L.geoJSON(geom,
-               { style: geostyle, pointToLayer: function (f,latlng) { return L.circleMarker(latlng,geostyle) } })
+               { style: layer_style, pointToLayer: function (f,latlng) { return L.circleMarker(latlng,layer_style) } })
         geolayer.on('mouseover', function() {
            highlight_layer(this);
            document.getElementById('details').innerHTML = make_details(row);
