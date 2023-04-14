@@ -37,6 +37,7 @@ function generate_link() {
 }
 
 const is_geo_col = (name) => name.toLowerCase().endsWith('geojson')
+const looks_like_geo_data = (d) => typeof(d) == "string" && d.startsWith('{') && d.indexOf('"coordinates"') > 0 && d.indexOf('"type"') > 0
 
 function highlight_layer(l) {
   if (highlighted_layer)  highlighted_layer.resetStyle()
@@ -63,7 +64,7 @@ function setup_map() {
       all_layers[dataset.queryName][row_number] = {}
       for (let col_spec of dataset.columns) {
         let col = col_spec.name
-        if (!is_geo_col(col)) continue;
+        if (!is_geo_col(col) && !looks_like_geo_data(row[col])) continue;
         let geom = null
         try {
           geom = JSON.parse(row[col])
@@ -103,7 +104,7 @@ function setup_map() {
 function make_details(j) {
  let out = '<table>'
  for (let k of Object.keys(j)) {
-  if (is_geo_col(k)) {
+  if (is_geo_col(k) || looks_like_geo_data(j[k])) {
     continue;
   }
   out += "<tr><td>" + k +  "</td><td>"
@@ -281,7 +282,7 @@ function setup_data(panels) {
       for (let col of d.columns) {
         let data_attrs = { "data-query_name" : d.queryName, "data-col_name" : col.name, "data-row_number" : row_number }
         let cell = div({class: 'csv_cell', ...data_attrs } )
-        if (is_geo_col(col.name)) {
+        if (is_geo_col(col.name) || looks_like_geo_data(row[col.name])) {
           cell.appendChild(
             elt( 'div', { class: 'geo_cell', ...data_attrs },
                 describe_geodata(row[col.name]),
@@ -292,7 +293,6 @@ function setup_data(panels) {
           cell.appendChild( document.createTextNode( row[col.name] ) )
         }
         let new_id = `cell_${d.queryName}_${col.name}_${row_number}`
-        console.log(`adding id ${new_id}`)
         tr.appendChild( elt('td', { class: 'csv_td', id: new_id } , cell ) )
       }
       table.appendChild(tr)
