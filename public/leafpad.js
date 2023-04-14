@@ -117,6 +117,9 @@ function make_details(j) {
   if (is_geo_col(k) || looks_like_geo_data(j[k])) {
     continue;
   }
+  if (k.toLowerCase().endsWith('_style')) {
+    continue;
+  }
   out += "<tr><td>" + k +  "</td><td>"
   if (j[k].length > 50) {
      out += j[k].substr(0,50) + '...'
