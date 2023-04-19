@@ -213,7 +213,7 @@ function handle_slider(e) {
   if (!timeline_time_column) {
     let col_names = timeline_dataset.columns.map( (c) => c.name )
     let sample_row = timeline_dataset.content[0]
-    timeline_time_column = col_names.filter( (c) => sample_row[c].match(/^(\d{2,4}-\d{2}-\d{2}|\d{1,2}:\d{2})/))[0]
+    timeline_time_column = col_names.filter( (c) => `${sample_row[c]}`.match(/^(\d{2,4}-\d{2}-\d{2}|\d{1,2}:\d{2})/))[0]
     timeline_time_column ||= timeline_dataset.columns[0].name // fallback to displaying the first column
     console.log(`timeline column: ${timeline_time_column}`)
   }
