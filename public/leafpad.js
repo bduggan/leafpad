@@ -195,10 +195,7 @@ function show_tab(query_name) {
   let tab_to_show   = `tab_${query_name}`
   if (timeline_dataset.queryName != query_name) {
     let nxt = datasets.filter( (l) => l.queryName == query_name )[0]
-    if (nxt) {
-      console.log(`switching to ${query_name}`)
-    }
-    timeline_dataset = nxt
+    set_slider_dataset(nxt)
   }
   for (let c of document.querySelector('#csv_tables').children) {
     c.style.display = c.id == table_to_show ? '' : 'none'
@@ -279,7 +276,6 @@ function setup_panels() {
     console.log('no element with id="leafpad" was found, please add one')
     return
   }
-  main.appendChild(div({ id: 'details' }))
   let controls = main.appendChild( div( { class: 'controls' } ) )
   controls.appendChild( txt( {}, 'leafpad' ) )
   controls.appendChild( txt( { id: 'current_link' }, '' ) )
@@ -293,12 +289,13 @@ function setup_panels() {
   controls.appendChild(pos)
   main.appendChild( controls )
   let panels = main.appendChild(div({ class: 'panels' }))
-  panels.appendChild(div({ id: 'map' }))
+  let mapdiv = panels.appendChild(div({ id: 'map' }))
   let slider = panels.appendChild(div({ class: 'slide_container' }))
   let input = slider.appendChild(elt(
     'input', {type: "range", min: "0", max:"99", value:"0", class:"slider", id: "timeline"}
   ))
   input.addEventListener('input',handle_slider)
+  mapdiv.appendChild(div({ id: 'details' }))
   return panels
 }
 
@@ -341,6 +338,12 @@ function describe_geodata(geo) {
   return desc
 }
 
+function set_slider_dataset(d) {
+  console.log(`setting slider dataset to ${d}`)
+  document.getElementById('timeline').max = d.count - 1
+  timeline_dataset = d
+}
+
 function setup_data(panels) {
   let csv_data = panels.appendChild(elt('div',{id: 'csv_data'}))
   let tabs = csv_data.appendChild(div({id:'tabs'}))
@@ -357,8 +360,7 @@ function setup_data(panels) {
       continue;
     }
     if (!added_slider && d.content && d.content[0]) {
-      document.getElementById('timeline').max = d.count - 1
-      timeline_dataset = d
+      set_slider_dataset(d)
       added_slider = true
     }
     let row_number = 0;

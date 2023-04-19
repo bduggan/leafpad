@@ -13,10 +13,12 @@ div#csv_data {
   margin: 4px;
   box-shadow: 1px 2px 4px #888888;
   position:absolute;
-  top:70vh;
-  right:5px;
-  background-color:rgba(185,168,180,0.8);
-  z-index: 1000;
+  top:1px;
+  right:1px;
+  background-color:rgba(50,50,50,0.5);
+  color: black;
+  font-weight: 500;
+  z-index: 2000;
   border-radius: 3px;
 }
 #map {
