@@ -26,6 +26,9 @@ var markerstyle = {
 var all_layers = {}
 var map;
 var highlighted_layer = null;
+var timeline_dataset = null;
+var timeline_time_column = null;
+var timeline_geojson_column = null;
 
 // functions
 function generate_link() {
@@ -148,14 +151,12 @@ const keylistener = (event) => {
 }
 
 let last_cell = null
-
 function highlight_csv_cell(cell) {
   if (last_cell)    last_cell.style.backgroundColor = 'white'
   let td = cell.closest("td")
   td.style.backgroundColor = '#ddddff'
   last_cell                = td
 }
-
 const csvlistener = (e) => {
   let cell = e.target
   let data = cell.dataset
@@ -169,11 +170,36 @@ const csvlistener = (e) => {
   map.flyToBounds(layer, { maxZoom: 17 })
   highlight_csv_cell(cell)
   highlight_layer(layer)
+  if (layer.query_name != timeline_dataset.queryName) {
+    console.log('not in right layer')
+    let nxt = datasets.filter( (l) => l.queryName == query_name )[0]
+    if (nxt) {
+      console.log(`switching to ${query_name}`)
+    } else {
+      console.log(`cannot find ${query_name}`)
+    }
+    timeline_dataset = nxt
+  }
+  set_slider(data.row_number)
+  timeline_geojson_column = data.col_name
+  console.log(`using ${timeline_geojson_column}`)
+}
+
+function set_slider(n) {
+  let slider = document.getElementById('timeline')
+  slider.value = n
 }
 
 function show_tab(query_name) {
   let table_to_show = `table_${query_name}`
   let tab_to_show   = `tab_${query_name}`
+  if (timeline_dataset.queryName != query_name) {
+    let nxt = datasets.filter( (l) => l.queryName == query_name )[0]
+    if (nxt) {
+      console.log(`switching to ${query_name}`)
+    }
+    timeline_dataset = nxt
+  }
   for (let c of document.querySelector('#csv_tables').children) {
     c.style.display = c.id == table_to_show ? '' : 'none'
   }
@@ -182,8 +208,49 @@ function show_tab(query_name) {
     c.style.color           = c.id == tab_to_show ? 'white' : 'black'
   }
 }
-
 const tablistener = (e) => show_tab(e.target.dataset.query_name)
+
+function handle_slider(e) {
+  if (!timeline_dataset) return
+  let n = e.target.value
+  if (!timeline_time_column) {
+    let col_names = timeline_dataset.columns.map( (c) => c.name )
+    let sample_row = timeline_dataset.content[0]
+    timeline_time_column = col_names.filter( (c) => sample_row[c].match(/^(\d{2,4}-\d{2}-\d{2}|\d{1,2}:\d{2})/))[0]
+    timeline_time_column ||= timeline_dataset.columns[0].name // fallback to displaying the first column
+    console.log(`timeline column: ${timeline_time_column}`)
+  }
+  if (!timeline_geojson_column) {
+    let col_names = timeline_dataset.columns.map( (c) => c.name )
+    let sample_row = timeline_dataset.content[0]
+    timeline_geojson_column = col_names.filter( (c) => is_geo_col(c) || looks_like_geo_data(sample_row[c]) )[0]
+    if (!timeline_geojson_column) {
+      console.log('error finding geojson column: is the first row missing data?')
+      return
+    }
+    console.log(`timeline geojson column: ${timeline_geojson_column}`)
+  }
+  let v = timeline_dataset.content[n][timeline_time_column]
+  document.getElementById('current_time').innerHTML = `${timeline_time_column.toLowerCase()}: ${v}`
+  let query = timeline_dataset.queryName
+  let col = timeline_geojson_column
+  let row_number = n
+  let layer = all_layers[timeline_dataset.queryName][n][timeline_geojson_column]
+  if (!layer) {
+    console.log(`cannot find layer for ${timeline_dataset.queryName}`)
+    return
+  }
+  let id = `cell_${query}_${col}_${row_number}`
+  highlight_layer(layer)
+  let cell = document.getElementById(id)
+  cell.scrollIntoView({alignToTop: true})
+  highlight_csv_cell(cell)
+  map.panInsideBounds(layer.getBounds())
+  let geodata = timeline_dataset.content[n][timeline_geojson_column]
+  if (geodata.indexOf('"Point"') == -1) {
+    map.fitBounds(layer.getBounds())
+  }
+}
 
 function elt(type, attrs, ...children) {
   let node = document.createElement(type);
@@ -221,10 +288,17 @@ function setup_panels() {
       ',',
       elt('span',{id:'lon'})
     )
+  let ts = div({class: 'current_time', id: 'current_time'})
+  controls.appendChild(ts)
   controls.appendChild(pos)
   main.appendChild( controls )
   let panels = main.appendChild(div({ class: 'panels' }))
   panels.appendChild(div({ id: 'map' }))
+  let slider = panels.appendChild(div({ class: 'slide_container' }))
+  let input = slider.appendChild(elt(
+    'input', {type: "range", min: "0", max:"99", value:"0", class:"slider", id: "timeline"}
+  ))
+  input.addEventListener('input',handle_slider)
   return panels
 }
 
@@ -275,11 +349,17 @@ function setup_data(panels) {
     tabs.appendChild( txt({id: `tab_${d.queryName}`, "data-query_name" : `${d.queryName}`}, `${d.queryName}`) )
   }
   let tables = csv_data.appendChild( div( {id: 'csv_tables'} ) )
+  let added_slider = false
   for (let d of datasets) {
     if (d.oversized) {
       console.log(`skipping oversized dataset ${d.queryName}`)
       tables.appendChild( elt('div', { class: 'error' }, `sorry, "${d.queryName}" was too large to load` ) )
       continue;
+    }
+    if (!added_slider && d.content && d.content[0]) {
+      document.getElementById('timeline').max = d.count - 1
+      timeline_dataset = d
+      added_slider = true
     }
     let row_number = 0;
     let table = elt('table', { class: 'csv_data', id: `table_${d.queryName}` })
@@ -329,8 +409,8 @@ function main() {
   setup_map()
   setup_data(panels)
   document.addEventListener('keydown', keylistener)
-  document.getElementById('csv_data').addEventListener('click', csvlistener);
-  document.getElementById('tabs').addEventListener('click', tablistener);
+  document.getElementById('csv_data').addEventListener('click', csvlistener)
+  document.getElementById('tabs').addEventListener('click', tablistener)
   map.addEventListener('mousemove', mouselistener)
 }
 

@@ -4,7 +4,7 @@ div#csv_data {
 }
 .panels {
   display:grid;
-  grid-template-rows: 70vh 20vh;
+  grid-template-rows: 70vh auto 20vh ;
   grid-template-columns: 1fr;
 }
 #details {
@@ -13,7 +13,7 @@ div#csv_data {
   margin: 4px;
   box-shadow: 1px 2px 4px #888888;
   position:absolute;
-  top:5px;
+  top:70vh;
   right:5px;
   background-color:rgba(185,168,180,0.8);
   z-index: 1000;
@@ -35,6 +35,11 @@ td {
 }
 div.controls {
   position:relative;
+}
+div.current_time {
+  position:absolute;
+  top:0px;
+  right:300px;
 }
 div.current_pos {
   position:absolute;
@@ -99,4 +104,10 @@ div.error {
   color: black;
   border:1px solid #ddaaaa;
   text-align: center;
+}
+div.slide_container {
+  width: 100%;
+}
+input#timeline {
+  width: 100%;
 }
