@@ -34,7 +34,9 @@ package Geofile {
    my %seen;
    my @header;
    my $data = csv(in => $name,
-                 headers => sub {
+                  auto_diag => 9,
+                  diag_verbose => 1,
+                  headers => sub {
                    my $nxt = ( $seen{$_[0]}++ ? $_[0] . '-' . $seen{$_[0]} : $_[0] );
                    push @header, $nxt;
                    $nxt;
