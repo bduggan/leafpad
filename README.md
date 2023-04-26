@@ -37,7 +37,7 @@ To use just the javascript in mode analytics, include the following in the HTML
 
 Then any column in the resultset ending in `geojson` will be placed on the map.
 
-# Installation and running
+# Installation and running locally
 
 1. Clone this repo
     ```
