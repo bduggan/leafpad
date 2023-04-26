@@ -35,7 +35,7 @@ table.csv_data {
 td {
   border: 1px solid #ddd;
 }
-div.controls {
+div.header {
   position:relative;
 }
 div.current_time {
@@ -107,7 +107,7 @@ div.error {
   border:1px solid #ddaaaa;
   text-align: center;
 }
-div.slide_container {
+div.controls {
   width: 100%;
 }
 input#timeline {

@@ -29,6 +29,7 @@ var highlighted_layer = null;
 var timeline_dataset = null;
 var timeline_time_column = null;
 var timeline_geojson_column = null;
+var pan_ok = true
 
 // functions
 function generate_link() {
@@ -167,7 +168,7 @@ const csvlistener = (e) => {
   if (!layer) {
     return
   }
-  map.flyToBounds(layer, { maxZoom: 17 })
+  if (pan_ok) map.flyToBounds(layer, { maxZoom: 17 })
   highlight_csv_cell(cell)
   highlight_layer(layer)
   if (layer.query_name != timeline_dataset.queryName) {
@@ -242,7 +243,7 @@ function handle_slider(e) {
   let cell = document.getElementById(id)
   cell.scrollIntoView({alignToTop: true})
   highlight_csv_cell(cell)
-  map.panInsideBounds(layer.getBounds())
+  if (pan_ok) map.panInsideBounds(layer.getBounds())
   let geodata = timeline_dataset.content[n][timeline_geojson_column]
   if (geodata.indexOf('"Point"') == -1) {
     map.fitBounds(layer.getBounds())
@@ -276,26 +277,30 @@ function setup_panels() {
     console.log('no element with id="leafpad" was found, please add one')
     return
   }
-  let controls = main.appendChild( div( { class: 'controls' } ) )
-  controls.appendChild( txt( {}, 'leafpad' ) )
-  controls.appendChild( txt( { id: 'current_link' }, '' ) )
+  let header = main.appendChild( div( { class: 'header' } ) )
+  header.appendChild( txt( {}, 'leafpad' ) )
+  header.appendChild( txt( { id: 'current_link' }, '' ) )
   let pos = elt( 'div', {class: 'current_pos', title: 'lat,lon', alt: 'lat,lon'},
       elt('span',{id:'lat'}),
       ',',
       elt('span',{id:'lon'})
     )
   let ts = div({class: 'current_time', id: 'current_time'})
-  controls.appendChild(ts)
-  controls.appendChild(pos)
-  main.appendChild( controls )
+  header.appendChild(ts)
+  header.appendChild(pos)
+  main.appendChild( header )
   let panels = main.appendChild(div({ class: 'panels' }))
   let mapdiv = panels.appendChild(div({ id: 'map' }))
-  let slider = panels.appendChild(div({ class: 'slide_container' }))
-  let input = slider.appendChild(elt(
+  let controls = panels.appendChild(div({ class: 'controls' }))
+  let slider = controls.appendChild(elt(
     'input', {type: "range", min: "0", max:"99", value:"0", class:"slider", id: "timeline"}
   ))
-  input.addEventListener('input',handle_slider)
+  slider.addEventListener('input',handle_slider)
   mapdiv.appendChild(div({ id: 'details' }))
+  let pan = elt('input', {type: "checkbox", name: "auto-pan", checked: true})
+  controls.appendChild(pan)
+  controls.appendChild(elt('label',{for: 'auto-pan'}, 'auto pan'))
+  pan.addEventListener('click',() => { pan_ok = ! pan_ok; console.log(`pan ok? ${pan_ok}`) } )
   return panels
 }
 
