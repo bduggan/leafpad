@@ -3,6 +3,10 @@
 
 <h3>
 %= link_to 'leafpad' => 'index'
+% my $parts = $geofiles->[0]->rel_path->to_array;
+:
+% if (@$parts > 1 ) {
+  %= link_to "$parts->[0]", url_for('show', name => $parts->[0])->query(url_with->query)
+% }
 </h3>
-
 <div id='leafpad'></div>

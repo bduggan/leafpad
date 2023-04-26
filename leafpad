@@ -19,6 +19,7 @@ package Geofile {
   has 'geodata';
   has 'header';
   has 'filename';
+  has 'rel_path';
 
   sub name($self) {
     path($self->filename)->basename('.csv');
@@ -26,7 +27,7 @@ package Geofile {
 
   sub ingest($self, $name) {
     my ($header, $data) = read_file($name);
-    $self->new(header => $header, geodata => $data, filename => $name);
+    $self->new(header => $header, geodata => $data, filename => $name, rel_path => path($name)->to_rel($data_dir));
   }
 
   sub read_file($name) {
