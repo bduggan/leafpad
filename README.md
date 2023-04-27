@@ -7,8 +7,8 @@ Quickly convert CSV files or SQL result sets into geospatial visualizations.
 You start with this:
 ```
 name,box,box_style
-nyc,"{""type"":""FeatureCollection"",""features"":[{""type"":""Feature"",""properties"":{},""geometry"":{""coordinates"":[[[-74.05,41.02],[-74.05,40.53],[-73.46,40.53],[-73.46,41.02],[-74.05,41.02]]],""type"":""Polygon""}}]}","{""color"":""cyan""}"
-sf,"{""type"":""FeatureCollection"",""features"":[{""type"":""Feature"",""properties"":{},""geometry"":{""coordinates"":[[[-122.53,37.81],[-122.53,37.60],[-122.32,37.60],[-122.32,37.81],[-122.53,37.81]]],""type"":""Polygon""}}]}","{""color"":""hsl(147, 50%, 47%)""}"
+nyc,40.730610,-73.935242,"{""type"":""Feature"",""properties"":{},""geometry"":{""coordinates"":[[[-74.05944756456219,41.027671563014025],[-74.05944756456219,40.535214985745114],[-73.4687494975488,40.535214985745114],[-73.4687494975488,41.027671563014025],[-74.05944756456219,41.027671563014025]]],""type"":""Polygon""}}","{""color"":""cyan""}"
+sf,37.773972,-122.431297,"{""type"":""Feature"",""properties"":{},""geometry"":{""coordinates"":[[[-122.53788826361247,37.8117481985156],[-122.53788826361247,37.60331129137758],[-122.32809344202103,37.60331129137758],[-122.32809344202103,37.8117481985156],[-122.53788826361247,37.8117481985156]]],""type"":""Polygon""}}","{""color"":""hsl(147, 50%, 47%)""}"
 ```
 
 And get this:
