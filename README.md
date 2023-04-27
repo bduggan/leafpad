@@ -24,7 +24,7 @@ And get this:
 - Click on a cell in the table to find it on the map
 - Click on the box on the right hand side of a geojson cell to see the raw geojson
 - Use the slider to animate selecting the rows one at a time
-- Select "auto pan" to keep the map from moving while selecting
+- Unselect "auto pan" to keep the map from moving while selecting
 
 ###  How do I use it locally?
 
