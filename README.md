@@ -1,30 +1,39 @@
 ## leafpad
 
-Leafpad is a simple way of viewing csv files that contain geojson columns.
+Quickly convert CSV files or SQL result sets into geospatial visualizations.
 
-<img width="1192" alt="image" src="https://user-images.githubusercontent.com/58956/230172170-6b18dbad-3505-4d82-9e12-df7f4a670a0a.png">
+Start with this:
+```
+name,box,box_style
+nyc,"{""type"":""FeatureCollection"",""features"":[{""type"":""Feature"",""properties"":{},""geometry"":{""coordinates"":[[[-74.05,41.02],[-74.05,40.53],[-73.46,40.53],[-73.46,41.02],[-74.05,41.02]]],""type"":""Polygon""}}]}","{""color"":""cyan""}"
+sf,"{""type"":""FeatureCollection"",""features"":[{""type"":""Feature"",""properties"":{},""geometry"":{""coordinates"":[[[-122.53,37.81],[-122.53,37.60],[-122.32,37.60],[-122.32,37.81],[-122.53,37.81]]],""type"":""Polygon""}}]}","{""color"":""hsl(147, 50%, 47%)""}"
+```
 
-# How it works
+Get this:
+
+<img width="1450" alt="image" src="https://user-images.githubusercontent.com/58956/234868080-582fe1e7-0a19-4280-b74f-a1fcf09b8c2f.png">
+
+## Tell me more!
+
+- Columns that look like geojson are rendered as geojson
+- Columns ending in _style are styles applied to that layer
+- Specifically: the style should be valid JSON with attributes that can be found [here](https://leafletjs.com/reference.html#path-option)
+- Click on the map to find the corresponding row in the CSV
+- Click on a cell in the table to find it on the map
+- Click on the box on the right hand side of a geojson cell to see the raw geojson
+- Use the slider to animate selecting the rows one at a time
+- Select "auto pan" to keep the map from moving while selecting
+
+## Overview of usage:
 
 1. Start a local web server
 1. Put a csv file into the `data` directory (demo.csv is there by default)
-2. Open a browser to http://localhost:3000/show/csv/demo (where "demo" is the base filename)
-3. Columns whose names end in `geojson` will be displayed as geojsons
-4. Also: columns that look like geojson will be displayed as geojson.  (i.e. they have a "type" and "coordinates")
+2. Open a browser to http://localhost:3000 and click on "demo"
 5. That's it!
-
-But wait, there's more!
-
-* click on geojson columns in the csv to fly there on the map
-* put multiple csv files into a directory, and view them all at once
-* use the mouse to scroll/pan
-* also a column named `foo_style` will be treated as a JSON string that represents style attributes for the geojson column named `foo`.  The valid style attributes can be found [here](https://leafletjs.com/reference.html#path-option)
-* okay, that's really it
-* one more thing:
 
 ## Running in mode analytics
 
-To use just the javascript in mode analytics, include the following in the HTML
+To use the javascript in mode analytics, include the following in your HTML:
 
 ```
 <div id="leafpad"></div>
@@ -35,9 +44,7 @@ To use just the javascript in mode analytics, include the following in the HTML
 <script src="https://bduggan.github.io/leafpad/public/leafpad.js"></script>
 ```
 
-Then any column in the resultset ending in `geojson` will be placed on the map.
-
-# Installation and running locally
+# Local installation
 
 1. Clone this repo
     ```
@@ -58,7 +65,5 @@ Then any column in the resultset ending in `geojson` will be placed on the map.
      ./leafpad daemon
      ```
 
-5. Open a browser at http://localhost:3000 and click on "demo" to go to http://localhost:3000/show/csv/demo
-
-6. Enjoy!
+5. Enjoy!
 
