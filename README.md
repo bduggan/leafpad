@@ -50,7 +50,7 @@ To use the javascript in mode analytics, include the following in your HTML:
 
 1. Clone this repo
     ```
-    git clone https://git.sr.ht/~bduggan/leafpad
+    git clone https://github.com/bduggan/leafpad
     ```
 
 2. Install a recent Perl and cpanminus (`cpanm`)
