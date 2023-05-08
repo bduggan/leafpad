@@ -19,6 +19,7 @@ And get this:
 
 - Columns that look like geojson are rendered as geojson
 - Columns ending in _style are styles applied to that layer
+- Columns ending in _hlstyle are styles used when that layer is highlighted
 - Specifically: the style should be valid JSON with attributes that can be found [here](https://leafletjs.com/reference.html#path-option)
 - Click on the map to find the corresponding row in the CSV
 - Click on a cell in the table to find it on the map

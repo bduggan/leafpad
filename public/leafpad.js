@@ -52,7 +52,17 @@ const looks_like_geo_data = (d) => typeof(d) == "string" && d.startsWith('{') &&
 function highlight_layer(l) {
   if (highlighted_layer)  highlighted_layer.resetStyle()
   highlighted_layer = l
-  l.setStyle(highlight)
+  l.setStyle(l.hl_style)
+}
+
+function try_parse(maybe_json) {
+  let parsed = null
+  try {
+    parsed = JSON.parse(maybe_json)
+  } catch {
+    console.log(`could not parse json: ${maybe_json}`)
+  }
+  return parsed
 }
 
 function setup_map() {
@@ -86,16 +96,9 @@ function setup_map() {
           console.log("error parsing geojson", e)
           continue
         }
-        let layer_style = geostyle
-        let custom_style = row[`${col}_STYLE`] || row[`${col}_style`]
-        if (custom_style) {
-          try {
-            layer_style = JSON.parse(custom_style)
-            console.log(`new style is ${layer_style}`)
-          } catch {
-            console.log(`could not parse style for ${col}: ${custom_style}`)
-          }
-        }
+        let layer_style = try_parse( row[`${col}_STYLE`] || row[`${col}_style`] ) || geostyle
+        let hl_style = try_parse( row[`${col}_HLSTYLE`] || row[`${col}_hlstyle`] ) || highlight
+
         let geolayer = L.geoJSON(geom,
                { style: layer_style, pointToLayer: function (f,latlng) { return L.circleMarker(latlng,layer_style) } })
         geolayer.on('mouseover', function() {
@@ -118,6 +121,7 @@ function setup_map() {
          geolayer.row_number = row_number
          geolayer.col_name = col
          geolayer.query_name= dataset.queryName
+         geolayer.hl_style = structuredClone( hl_style )
          geolayer.addTo(map);
        }
        row_number += 1
