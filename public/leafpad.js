@@ -184,9 +184,13 @@ const csvlistener = (e) => {
   if (!layer) {
     return
   }
-  if (pan_ok) map.flyToBounds(layer, { maxZoom: 17 })
+  if (pan_ok) map.flyToBounds(layer, { maxZoom: 16 })
   highlight_csv_cell(cell)
-  highlight_layers([ layer ])
+  if (hl_row) {
+    highlight_layers(Object.values( all_layers[query_name][data.row_number] ))
+  } else {
+    highlight_layers([ layer ])
+  }
   if (layer.query_name != timeline_dataset.queryName) {
     console.log('not in right layer')
     let nxt = datasets.filter( (l) => l.queryName == query_name )[0]
@@ -256,8 +260,7 @@ function handle_slider(e) {
   }
   let id = `cell_${query}_${col}_${row_number}`
   if (hl_row) {
-    let layers = Object.values( all_layers[timeline_dataset.queryName][n] )
-    highlight_layers(layers)
+    highlight_layers(Object.values( all_layers[timeline_dataset.queryName][n] ))
   } else {
     highlight_layers([ layer ])
   }
