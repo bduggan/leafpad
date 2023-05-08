@@ -25,11 +25,12 @@ var markerstyle = {
 };
 var all_layers = {}
 var map;
-var highlighted_layer = null;
+var highlighted_layers = [];
 var timeline_dataset = null;
 var timeline_time_column = null;
 var timeline_geojson_column = null;
-var pan_ok = true
+var pan_ok = true;
+var hl_row = false;
 
 // functions
 function generate_link() {
@@ -49,10 +50,11 @@ function generate_link() {
 const is_geo_col = (name) => name.toLowerCase().endsWith('geojson')
 const looks_like_geo_data = (d) => typeof(d) == "string" && d.startsWith('{') && d.indexOf('"coordinates"') > 0 && d.indexOf('"type"') > 0
 
-function highlight_layer(l) {
-  if (highlighted_layer)  highlighted_layer.resetStyle()
-  highlighted_layer = l
-  l.setStyle(l.hl_style)
+function highlight_layers(layers) {
+  if (highlighted_layers) highlighted_layers.map( l => l.resetStyle() )
+  highlighted_layers = layers
+  layers.map( l => l.setStyle(l.hl_style) )
+  layers.map( l => l.bringToFront() )
 }
 
 function try_parse(maybe_json) {
@@ -102,12 +104,12 @@ function setup_map() {
         let geolayer = L.geoJSON(geom,
                { style: layer_style, pointToLayer: function (f,latlng) { return L.circleMarker(latlng,layer_style) } })
         geolayer.on('mouseover', function() {
-           highlight_layer(this);
+           highlight_layers([ this ]);
            document.getElementById('details').innerHTML = make_details(row);
          })
          geolayer.on('mouseout', function() { this.resetStyle() })
          geolayer.on('click', function() {
-           highlight_layer(this)
+           highlight_layers([ this ])
            let col = this.col_name;
            let query = this.query_name;
            let row_number = this.row_number;
@@ -161,7 +163,7 @@ const keylistener = (event) => {
   const keyName = event.key;
   if (keyName === 'l') generate_link()
   if (keyName === 'b') {
-    if (highlighted_layer) highlighted_layer.bringToBack()
+    if (highlighted_layers) highlighted_layers.map( l => l.bringToBack() )
   }
 }
 
@@ -184,7 +186,7 @@ const csvlistener = (e) => {
   }
   if (pan_ok) map.flyToBounds(layer, { maxZoom: 17 })
   highlight_csv_cell(cell)
-  highlight_layer(layer)
+  highlight_layers([ layer ])
   if (layer.query_name != timeline_dataset.queryName) {
     console.log('not in right layer')
     let nxt = datasets.filter( (l) => l.queryName == query_name )[0]
@@ -253,7 +255,12 @@ function handle_slider(e) {
     return
   }
   let id = `cell_${query}_${col}_${row_number}`
-  highlight_layer(layer)
+  if (hl_row) {
+    let layers = Object.values( all_layers[timeline_dataset.queryName][n] )
+    highlight_layers(layers)
+  } else {
+    highlight_layers([ layer ])
+  }
   let cell = document.getElementById(id)
   cell.scrollIntoView({alignToTop: true})
   highlight_csv_cell(cell)
@@ -311,10 +318,17 @@ function setup_panels() {
   ))
   slider.addEventListener('input',handle_slider)
   mapdiv.appendChild(div({ id: 'details' }))
+
   let pan = elt('input', {type: "checkbox", name: "auto-pan", checked: true})
   controls.appendChild(pan)
   controls.appendChild(elt('label',{for: 'auto-pan'}, 'auto pan'))
-  pan.addEventListener('click',() => { pan_ok = ! pan_ok; console.log(`pan ok? ${pan_ok}`) } )
+  pan.addEventListener('click',() => { pan_ok = !pan_ok } )
+
+  let hl_row_box = elt('input', {type: "checkbox", name: "hl-row" })
+  controls.appendChild(hl_row_box)
+  controls.appendChild(elt('label',{for: 'hl-row'}, 'highlight row'))
+  hl_row_box.addEventListener('click',() => { hl_row = !hl_row } )
+
   return panels
 }
 
