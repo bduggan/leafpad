@@ -255,7 +255,7 @@ function handle_slider(e) {
   highlight_csv_cell(cell)
   if (pan_ok) map.panInsideBounds(layer.getBounds())
   let geodata = timeline_dataset.content[n][timeline_geojson_column]
-  if (geodata.indexOf('"Point"') == -1) {
+  if (pan_ok && geodata.indexOf('"Point"') == -1) {
     map.fitBounds(layer.getBounds())
   }
 }

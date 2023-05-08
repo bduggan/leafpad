@@ -11,13 +11,13 @@ div#csv_data {
   border: 1px solid grey;
   padding: 2px;
   margin: 4px;
-  box-shadow: 1px 2px 4px #888888;
+  box-shadow: 1px 2px 4px rgba(0,0,0,0.7);
   position:absolute;
   top:1px;
   right:1px;
-  background-color:rgba(50,50,50,0.5);
+  background-color:rgba(255,255,255,0.9);
   color: black;
-  font-weight: 500;
+  font-weight: 300;
   z-index: 2000;
   border-radius: 3px;
 }
