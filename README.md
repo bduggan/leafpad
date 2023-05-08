@@ -26,6 +26,11 @@ And get this:
 - Use the slider to animate selecting the rows one at a time
 - Unselect "auto pan" to keep the map from moving while selecting
 
+### More options
+
+- the `lat`, `lon` and `zoom` query parameters can be used to set the initial lat, lon and zoom.
+- the `tile_provider` query parameters can be used to set the tile provider.  See [here](https://leaflet-extras.github.io/leaflet-providers/preview/) for a valid list. The default is `CartoDB.Positron`.
+
 ###  How do I use it locally?
 
 1. Start a local web server
