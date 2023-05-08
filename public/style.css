@@ -32,6 +32,13 @@ table {
 table.csv_data {
   width: 100%;
 }
+table.csv_data tr th {
+  max-width: 5vh;
+  overflow:hidden;
+  text-overflow: ellipsis;
+  font-weight: normal;
+  font-size: 90%;
+}
 td {
   border: 1px solid #ddd;
 }
@@ -94,12 +101,6 @@ div.geo_cell {
 }
 div.geo_cell button {
   float:right;
-}
-div.geo_cell .geo_content {
-  display: none;
-}
-div.geo_cell:hover .geo_content {
-  display: block;
 }
 div.error {
   background-color: #ffdddd;

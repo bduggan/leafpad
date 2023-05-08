@@ -48,6 +48,7 @@ function generate_link() {
 }
 
 const is_geo_col = (name) => name.toLowerCase().endsWith('geojson')
+const is_style_col = (name) => name.toLowerCase().endsWith('_style') || name.toLowerCase().endsWith('_hlstyle')
 const looks_like_geo_data = (d) => typeof(d) == "string" && d.startsWith('{') && d.indexOf('"coordinates"') > 0 && d.indexOf('"type"') > 0
 
 function highlight_layers(layers) {
@@ -61,8 +62,8 @@ function try_parse(maybe_json) {
   let parsed = null
   try {
     parsed = JSON.parse(maybe_json)
-  } catch {
-    console.log(`could not parse json: ${maybe_json}`)
+  } catch(err) {
+    console.log(`could not parse json: ${err.message}`, maybe_json)
   }
   return parsed
 }
@@ -137,7 +138,7 @@ function make_details(j) {
   if (is_geo_col(k) || looks_like_geo_data(j[k])) {
     continue;
   }
-  if (k.toLowerCase().endsWith('_style')) {
+  if (is_style_col(k)) {
     continue;
   }
   out += "<tr><td>" + k +  "</td><td>"
@@ -406,7 +407,7 @@ function setup_data(panels) {
       `${d.queryName} (${d.count} row${d.count == 1 ? '' : 's'})`,
       elt('a', { href: d.csv, target: '_blank', class: 'download' }, 'download csv')
     ))
-    table.appendChild( elt('tr', {}, ...d.columns.map( c => elt('th', {}, c.name) ) ) )
+    table.appendChild( elt('tr', {}, ...d.columns.map( c => elt('th', { alt: c.name, title: c.name }, c.name) ) ) )
     console.log(`rows in dataset ${d.queryName} : ${d.count}`)
     for ( let row of d.content ) {
       let tr = elt('tr',{})
@@ -418,6 +419,13 @@ function setup_data(panels) {
             elt( 'div', { class: 'geo_cell', ...data_attrs },
                 describe_geodata(row[col.name]),
                 elt( 'button', { class: 'geocopy', onclick: `{window.open().document.write(${ JSON.stringify(row[col.name]) });}`  }, '📋'),
+               )
+          )
+        } else if (is_style_col(col.name)) {
+          cell.appendChild(
+            elt( 'div', { class: 'geo_cell', ...data_attrs },
+                elt( 'i', {}, 'style' ),
+                elt( 'button', { onclick: `{window.open().document.write(${ JSON.stringify(row[col.name]) });}`  }, '📋'),
                )
           )
         } else { 
