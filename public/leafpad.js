@@ -31,6 +31,7 @@ var timeline_time_column = null;
 var timeline_geojson_column = null;
 var pan_ok = true;
 var hl_row = false;
+var hl_hover = false;
 
 // functions
 function generate_link() {
@@ -105,10 +106,12 @@ function setup_map() {
         let geolayer = L.geoJSON(geom,
                { style: layer_style, pointToLayer: function (f,latlng) { return L.circleMarker(latlng,layer_style) } })
         geolayer.on('mouseover', function() {
-           highlight_layers([ this ]);
-           document.getElementById('details').innerHTML = make_details(row);
+           if (hl_hover) {
+             highlight_layers([ this ]);
+             document.getElementById('details').innerHTML = make_details(row);
+           }
          })
-         geolayer.on('mouseout', function() { this.resetStyle() })
+         geolayer.on('mouseout', function() { if (hlhover) this.resetStyle() })
          geolayer.on('click', function() {
            highlight_layers([ this ])
            let col = this.col_name;
@@ -271,7 +274,7 @@ function handle_slider(e) {
   if (pan_ok) map.panInsideBounds(layer.getBounds())
   let geodata = timeline_dataset.content[n][timeline_geojson_column]
   if (pan_ok && geodata.indexOf('"Point"') == -1) {
-    map.fitBounds(layer.getBounds())
+    map.fitBounds(layer.getBounds(), { maxZoom: 16 })
   }
 }
 
@@ -332,6 +335,11 @@ function setup_panels() {
   controls.appendChild(hl_row_box)
   controls.appendChild(elt('label',{for: 'hl-row'}, 'highlight row'))
   hl_row_box.addEventListener('click',() => { hl_row = !hl_row } )
+
+  let hl_hover_box = elt('input', {type: "checkbox", name: "hl-hover" })
+  controls.appendChild(hl_hover_box)
+  controls.appendChild(elt('label',{for: 'hl-hover'}, 'highlight on hover'))
+  hl_hover_box.addEventListener('click',() => { hl_hover = !hl_hover } )
 
   return panels
 }
