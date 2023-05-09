@@ -1,0 +1,13 @@
+0.0.3 2023-05-09
+  - recognize geo columns by content
+  - support _style and _hlstyle
+  - slider
+  - checkboxes for panning, highlighting rows
+  - and disabling hover highlighting
+  - configuration options
+
+0.0.2 2023-04-14
+  - bug fixes
+
+0.0.1 2023-04-12
+   - initial release
