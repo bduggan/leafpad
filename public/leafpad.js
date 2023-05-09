@@ -1,4 +1,10 @@
 
+if (typeof(leafpad_config) == 'undefined') {
+  console.log('no configuration found, using defaults')
+} else {
+  console.log('found configuration', leafpad_config)
+}
+
 // globals
 var highlight = {
     "fillColor": "#000000",
@@ -60,6 +66,7 @@ function highlight_layers(layers) {
 }
 
 function try_parse(maybe_json) {
+  if (!maybe_json) return null
   let parsed = null
   try {
     parsed = JSON.parse(maybe_json)
@@ -111,7 +118,7 @@ function setup_map() {
              document.getElementById('details').innerHTML = make_details(row);
            }
          })
-         geolayer.on('mouseout', function() { if (hlhover) this.resetStyle() })
+         geolayer.on('mouseout', function() { if (hl_hover) this.resetStyle() })
          geolayer.on('click', function() {
            highlight_layers([ this ])
            let col = this.col_name;
@@ -384,7 +391,6 @@ function describe_geodata(geo) {
 }
 
 function set_slider_dataset(d) {
-  console.log(`setting slider dataset to ${d}`)
   document.getElementById('timeline').max = d.count - 1
   timeline_dataset = d
 }
@@ -458,7 +464,6 @@ function main() {
     return;
   }
   loaded = true;
-  console.log('setting up');
   let panels = setup_panels()
   setup_map()
   setup_data(panels)
