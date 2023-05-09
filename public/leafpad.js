@@ -1,8 +1,27 @@
 
 if (typeof(leafpad_config) == 'undefined') {
   console.log('no configuration found, using defaults')
+  let stored = window.localStorage.getItem('leafpad_config')
+  if (stored) {
+    console.log('found stored config', stored)
+    try {
+      leafpad_config = JSON.parse(stored)
+    } catch {
+      console.log('could not parse config')
+    }
+  }
 } else {
   console.log('found configuration', leafpad_config)
+}
+
+let default_config = {
+  tile_provider: 'CartoDB.Positron'
+}
+
+function config(key) {
+  if (typeof(leafpad_config) == 'undefined') return default_config[key]
+  if (key in leafpad_config) return leafpad_config[key]
+  return default_config[key]
 }
 
 // globals
@@ -44,13 +63,9 @@ function generate_link() {
   let el = document.getElementById('current_link');
   let base = `${location.origin}${location.pathname}`
   let latlng = map.getCenter()
-  let tile_provider = ''
   let q = new URLSearchParams(location.search)
   let params = Object.fromEntries(q.entries())
-  if (params.tile_provider) {
-    tile_provider = `&tile_provider=${params.tile_provider}`
-  }
-  let link = `${base}?lat=${latlng.lat}&lon=${latlng.lng}&zoom=${map.getZoom()}${tile_provider}`
+  let link = `${base}?lat=${latlng.lat}&lon=${latlng.lng}&zoom=${map.getZoom()}`
   el.innerHTML = `<a href=${link}>${link}</a>`
 }
 
@@ -84,10 +99,7 @@ function setup_map() {
   let zoom = params.zoom || 5
   map = L.map('map').setView([lat,lon], zoom );
   map.doubleClickZoom.disable();
-  let provider = 'CartoDB.Positron'
-  if (params.tile_provider) {
-    provider = params.tile_provider
-  }
+  let provider = config('tile_provider')
   L.tileLayer.provider(provider).addTo(map);
   L.control.scale().addTo(map);
 
