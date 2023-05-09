@@ -44,9 +44,10 @@ Valid configuration settings are:
 
 - tile_provider -- see above
 - initial_zoom, initial_lat, initial_lon
-- max_zoom
-- geostyle
-- hl_style
+- max_zoom -- maximum zoom value
+- geostyle -- default style for geojson shapes
+- hl_style -- default highlight style
+- hide_style_columns -- hide columns named _style and _hlstyle in the rows?
 
 See [leafpad.js](public/leafpad.js) for examples.
 

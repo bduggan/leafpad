@@ -20,6 +20,7 @@ let default_config = {
   max_zoom: 16,
   initial_lat: 37.09,
   initial_lon: -96.70,
+  hide_style_columns: true,
   geostyle: {
       "fillColor": "#ccfaa0",
       "fillOpacity" : 0.05,
@@ -427,7 +428,13 @@ function setup_data(panels) {
       `${d.queryName} (${d.count} row${d.count == 1 ? '' : 's'})`,
       elt('a', { href: d.csv, target: '_blank', class: 'download' }, 'download csv')
     ))
-    table.appendChild( elt('tr', {}, ...d.columns.map( c => elt('th', { alt: c.name, title: c.name }, c.name) ) ) )
+    if (config('hide_style_columns')) {
+      table.appendChild( elt('tr', {}, ...d.columns
+        .filter( c => !is_style_col(c.name) )
+        .map( c => elt('th', { alt: c.name, title: c.name }, c.name) ) ) )
+    } else {
+      table.appendChild( elt('tr', {}, ...d.columns.map( c => elt('th', { alt: c.name, title: c.name }, c.name) ) ) )
+    }
     console.log(`rows in dataset ${d.queryName} : ${d.count}`)
     for ( let row of d.content ) {
       let tr = elt('tr',{})
@@ -442,6 +449,7 @@ function setup_data(panels) {
                )
           )
         } else if (is_style_col(col.name)) {
+          if (config('hide_style_columns')) continue;
           cell.appendChild(
             elt( 'div', { class: 'geo_cell', ...data_attrs },
                 elt( 'i', {}, 'style' ),
