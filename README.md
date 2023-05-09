@@ -26,11 +26,29 @@ And get this:
 - Click on the box on the right hand side of a geojson cell to see the raw geojson
 - Use the slider to animate selecting the rows one at a time
 - Unselect "auto pan" to keep the map from moving while selecting
+- Select "highlight on hover" to show geojson elements by hovering the mouse
+- Select "highlight row" to show all the geojson objects in a row, instead of just the selected column
 
-### More options
+### Configuration
 
 - the `lat`, `lon` and `zoom` query parameters can be used to set the initial lat, lon and zoom.
 - the `tile_provider` query parameters can be used to set the tile provider.  See [here](https://leaflet-extras.github.io/leaflet-providers/preview/) for a valid list. The default is `CartoDB.Positron`.
+- the javascript also looks for  a globally defined `leafpad_config` in a variable
+- Alternatively, `leafpad_config` can be set in localStorage, like so:
+
+```
+localStorage.setItem('leafpad_config', JSON.stringify({tile_provider: 'USGS.USTopo'}))
+```
+
+Valid configuration settings are:
+
+- tile_provider -- see above
+- initial_zoom, initial_lat, initial_lon
+- max_zoom
+- geostyle
+- hl_style
+
+See [leafpad.js](public/leafpad.js) for examples.
 
 ###  How do I use it locally?
 

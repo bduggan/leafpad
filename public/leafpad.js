@@ -15,7 +15,25 @@ if (typeof(leafpad_config) == 'undefined') {
 }
 
 let default_config = {
-  tile_provider: 'CartoDB.Positron'
+  tile_provider: 'CartoDB.Positron',
+  initial_zoom: 5,
+  max_zoom: 16,
+  initial_lat: 37.09,
+  initial_lon: -96.70,
+  geostyle: {
+      "fillColor": "#ccfaa0",
+      "fillOpacity" : 0.05,
+      "color": "#552255",
+      "weight": 1,
+      "radius": 3,
+      "opacity": 0.9
+  },
+  hl_style:  {
+    "fillColor": "#000000",
+    "color": "#ff8c00",
+    "weight" : 5,
+    "opacity": 0.9,
+  }
 }
 
 function config(key) {
@@ -24,30 +42,6 @@ function config(key) {
   return default_config[key]
 }
 
-// globals
-var highlight = {
-    "fillColor": "#000000",
-    "color": "#ff8c00",
-    "weight" : 5,
-    "opacity": 0.9
-};
-
-var geostyle = {
-    "fillColor": "#ccfaa0",
-    "fillOpacity" : 0.05,
-    "color": "#552255",
-    "weight": 1,
-    "radius": 3,
-    "opacity": 0.9
-};
-
-var markerstyle = {
-  radius: 5,
-  weight: 1,
-  fillOpacity: 0.8,
-  fillColor: "#aacc00",
-  color: "#000000"
-};
 var all_layers = {}
 var map;
 var highlighted_layers = [];
@@ -94,9 +88,9 @@ function try_parse(maybe_json) {
 function setup_map() {
   let q = new URLSearchParams(location.search)
   let params = Object.fromEntries(q.entries())
-  let lat = params.lat || 37.09
-  let lon = params.lon  || -96.70
-  let zoom = params.zoom || 5
+  let lat = params.lat || config('initial_lat')
+  let lon = params.lon  || config('initial_lon')
+  let zoom = params.zoom || config('initial_zoom')
   map = L.map('map').setView([lat,lon], zoom );
   map.doubleClickZoom.disable();
   let provider = config('tile_provider')
@@ -119,8 +113,8 @@ function setup_map() {
           console.log("error parsing geojson", e)
           continue
         }
-        let layer_style = try_parse( row[`${col}_STYLE`] || row[`${col}_style`] ) || geostyle
-        let hl_style = try_parse( row[`${col}_HLSTYLE`] || row[`${col}_hlstyle`] ) || highlight
+        let layer_style = try_parse( row[`${col}_STYLE`] || row[`${col}_style`] ) || config('geostyle')
+        let hl_style = try_parse( row[`${col}_HLSTYLE`] || row[`${col}_hlstyle`] ) || config('hl_style')
 
         let geolayer = L.geoJSON(geom,
                { style: layer_style, pointToLayer: function (f,latlng) { return L.circleMarker(latlng,layer_style) } })
@@ -207,7 +201,7 @@ const csvlistener = (e) => {
   if (!layer) {
     return
   }
-  if (pan_ok) map.flyToBounds(layer, { maxZoom: 16 })
+  if (pan_ok) map.flyToBounds(layer, { maxZoom: config('max_zoom') })
   highlight_csv_cell(cell)
   if (hl_row) {
     highlight_layers(Object.values( all_layers[query_name][data.row_number] ))
@@ -293,7 +287,7 @@ function handle_slider(e) {
   if (pan_ok) map.panInsideBounds(layer.getBounds())
   let geodata = timeline_dataset.content[n][timeline_geojson_column]
   if (pan_ok && geodata.indexOf('"Point"') == -1) {
-    map.fitBounds(layer.getBounds(), { maxZoom: 16 })
+    map.fitBounds(layer.getBounds(), { maxZoom: config('max_zoom') })
   }
 }
 
