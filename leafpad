@@ -76,6 +76,9 @@ get 'datasets/*name/data.js' => { format => 'js' } => sub($c) {
   my $io = $data_dir->child($name);
   if (-d $io) {
     $c->stash(geofiles => $io->list->grep(sub { /\.csv/ })->map(sub { Geofile->ingest("$_") }));
+    if (-e $io->child("config.js") ) {
+      $c->stash(leafpad_config => $io->child('config.js')->slurp)
+    }
   } else {
     $c->stash(geofiles => [Geofile->ingest("$io.csv")]);
   }

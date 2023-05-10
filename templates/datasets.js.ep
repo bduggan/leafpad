@@ -1,5 +1,7 @@
 var datasets = [];
 
+%== (stash 'leafpad_config') || ''
+
 % for my $d (@$geofiles) {
   {
     let columns = []
