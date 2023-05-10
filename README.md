@@ -52,7 +52,7 @@ And get this:
 
 Valid configuration settings are:
 
-- tile_provider -- default is "CartoDB.Positron"
+- tile_provider -- default is "CartoDB.Positron" (see this [list](https://leaflet-extras.github.io/leaflet-providers/preview/))
 - initial_zoom, initial_lat, initial_lon
 - max_zoom -- maximum zoom value
 - geostyle -- default style for geojson shapes
