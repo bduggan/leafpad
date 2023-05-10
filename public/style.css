@@ -114,3 +114,14 @@ div.controls {
 input#timeline {
   width: 100%;
 }
+.slider {
+   vertical-align: middle;
+}
+.autoplay {
+  display: inline-block;
+}
+.sliderdiv {
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  margin-top: 2px;
+}

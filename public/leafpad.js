@@ -246,9 +246,34 @@ function show_tab(query_name) {
 }
 const tablistener = (e) => show_tab(e.target.dataset.query_name)
 
+let running = null;
+function handle_autoplay() {
+  let btn = document.getElementById('autoplay')
+  if (running) {
+    window.clearInterval(running);
+    btn.innerHTML = '⯈'
+    running = null
+    return;
+  }
+  let tl = document.getElementById('timeline')
+  btn.innerHTML = '⏹'
+  running = window.setInterval( () => {
+    tl.stepUp(1);
+    if (tl.value >= tl.max - 1) {
+      window.clearInterval(running);
+      btn.innerHTML = '⯈'
+      return;
+    }
+    slider_changed_to( tl.value )
+  }, 1000 );
+}
+
 function handle_slider(e) {
   if (!timeline_dataset) return
-  let n = e.target.value
+  slider_changed_to(  e.target.value )
+}
+
+function slider_changed_to(n) {
   if (!timeline_time_column) {
     let col_names = timeline_dataset.columns.map( (c) => c.name )
     let sample_row = timeline_dataset.content[0]
@@ -334,7 +359,12 @@ function setup_panels() {
   let panels = main.appendChild(div({ class: 'panels' }))
   let mapdiv = panels.appendChild(div({ id: 'map' }))
   let controls = panels.appendChild(div({ class: 'controls' }))
-  let slider = controls.appendChild(elt(
+  let sliderdiv = controls.appendChild(elt( 'div', { class: 'sliderdiv' } ) )
+  let autoplay = sliderdiv.appendChild(elt(
+    'button', { class: 'autoplay', id: 'autoplay' }, '⯈'
+  ))
+  autoplay.addEventListener('click', handle_autoplay )
+  let slider = sliderdiv.appendChild(elt(
     'input', {type: "range", min: "0", max:"99", value:"0", class:"slider", id: "timeline"}
   ))
   slider.addEventListener('input',handle_slider)
