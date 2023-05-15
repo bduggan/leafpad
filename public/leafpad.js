@@ -136,6 +136,9 @@ function setup_map() {
            let cell = document.getElementById(id)
            cell.scrollIntoView({alignToTop: true})
            highlight_csv_cell(cell)
+           let ds = datasets.filter( (l) => l.queryName == query )[0]
+           let row = ds.content[row_number]
+           document.getElementById('details').innerHTML = make_details(row);
          })
          all_layers[dataset.queryName][row_number][col] = geolayer;
          geolayer.row_number = row_number
@@ -181,7 +184,7 @@ const keylistener = (event) => {
   const keyName = event.key;
   if (keyName === 'l') generate_link()
   if (keyName === 'b') {
-    if (highlighted_layers) highlighted_layers.map( l => l.bringToBack() )
+    if (highlighted_layers) highlighted_layers.map( (l) => l.bringToBack() )
   }
 }
 
