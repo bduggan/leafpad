@@ -52,6 +52,7 @@ var timeline_geojson_column = null;
 var pan_ok = true;
 var hl_row = false;
 var hl_hover = false;
+var dt_show = true;
 
 // functions
 function generate_link() {
@@ -153,6 +154,8 @@ function setup_map() {
 }
 
 function make_details(j) {
+ if (!dt_show) return ''
+  
  let out = '<table>'
  for (let k of Object.keys(j)) {
   if (is_geo_col(k) || looks_like_geo_data(j[k])) {
@@ -229,6 +232,7 @@ const csvlistener = (e) => {
 
 function set_slider(n) {
   let slider = document.getElementById('timeline')
+  update_details( timeline_dataset.content[n] )
   slider.value = n
 }
 
@@ -276,6 +280,10 @@ function handle_slider(e) {
   slider_changed_to(  e.target.value )
 }
 
+function update_details(row) {
+  document.getElementById('details').innerHTML = make_details(row);
+}
+
 function slider_changed_to(n) {
   if (!timeline_time_column) {
     let col_names = timeline_dataset.columns.map( (c) => c.name )
@@ -305,6 +313,7 @@ function slider_changed_to(n) {
     return
   }
   let id = `cell_${query}_${col}_${row_number}`
+  update_details( timeline_dataset.content[n] )
   if (hl_row) {
     highlight_layers(Object.values( all_layers[timeline_dataset.queryName][n] ))
   } else {
@@ -387,6 +396,11 @@ function setup_panels() {
   controls.appendChild(hl_hover_box)
   controls.appendChild(elt('label',{for: 'hl-hover'}, 'highlight on hover'))
   hl_hover_box.addEventListener('click',() => { hl_hover = !hl_hover } )
+
+  let show_details_box = elt('input', {type: "checkbox", name: "dt-show", checked: true })
+  controls.appendChild(show_details_box)
+  controls.appendChild(elt('label',{for: 'hl-hover'}, 'show details'))
+  show_details_box.addEventListener('click',() => { dt_show = !dt_show } )
 
   return panels
 }
