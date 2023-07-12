@@ -21,6 +21,9 @@ let default_config = {
   initial_lat: 37.09,
   initial_lon: -96.70,
   hide_style_columns: true,
+  column_links: {
+    // my_column_name: (v) => `https://google.com?q=${ v }`
+  },
   geostyle: {
       "fillColor": "#ccfaa0",
       "fillOpacity" : 0.05,
@@ -153,6 +156,12 @@ function setup_map() {
   }
 }
 
+function col_link(c,v) {
+  let cb = config('column_links')[c.toLowerCase()];
+  if (!cb) return null
+  return cb(v)
+}
+
 function make_details(j) {
  if (!dt_show) return ''
   
@@ -165,10 +174,17 @@ function make_details(j) {
     continue;
   }
   out += "<tr><td>" + k +  "</td><td>"
+  let val = ''
   if (j[k].length > 50) {
-     out += j[k].substr(0,50) + '...'
+     val = j[k].substr(0,50) + '...'
   } else {
-     out += j[k]
+     val = j[k]
+  }
+  let target = col_link(k, j[k]);
+  if (target) {
+    out += `<a href="${ target }" target="_blank">${ val }</a>`
+  } else {
+    out += val
   }
   out += "</td></tr>"
  }

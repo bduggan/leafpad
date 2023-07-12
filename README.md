@@ -58,6 +58,7 @@ Valid configuration settings are:
 - geostyle -- default style for geojson shapes
 - hl_style -- default highlight style
 - hide_style_columns -- hide columns named _style and _hlstyle in the rows?
+- column_links -- a mapping from column names to functions that generate an href
 
 See [leafpad.js](public/leafpad.js) for examples.
 
