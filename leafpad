@@ -55,7 +55,10 @@ app->helper(set_defaults => sub($c) {
 
 get '/' => { layout => 'bare' } => sub($c) {
   $c->set_defaults;
-  $c->stash(csv_files => $data_dir->list({dir => 1})->grep(sub { /.csv/ || -d "$_" })->sort );
+  $c->stash(csv_files => $data_dir
+        ->list({dir => 1})
+        ->grep(sub { /.csv/ || -d "$_" })
+        ->sort(sub { $b->stat->atime <=> $a->stat->atime } ) );
 } => 'index';
 
 get '/show/csv/*name' => sub($c) {
