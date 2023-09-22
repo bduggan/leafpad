@@ -10,16 +10,17 @@ var datasets = [];
     % }
     let content = []
     % my $i = 0;
-    % for my $row (@{ $d->geodata }) {
+    % for my $row (@{ $d->geodata || [] }) {
       content.push(<%== b(Mojo::JSON::encode_json({  map { uc $_ => $row->{$_} } @{ $d->header }  }))->decode %>)
     % }
     datasets.push( {
        queryName: "<%= $d->name %>",
        columns: columns,
        content: content,
-       count: <%= +@{ $d->geodata } %>,
+       count: <%= +@{ $d->geodata || [] } %>,
        csv: "<%= url_for('csv', name => $d->name)->to_abs %>",
-       oversized: false
+       oversized: false,
+       can_update: <%= update_handler($c->req->url->path->parts->[-2], $d->name) ? 'true' : 'false' %>,
        } )
   }
 % }

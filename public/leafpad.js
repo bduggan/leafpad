@@ -17,7 +17,7 @@ if (typeof(leafpad_config) == 'undefined') {
 let default_config = {
   tile_provider: 'CartoDB.Positron',
   initial_zoom: 5,
-  max_zoom: 16,
+  max_zoom: 20,
   initial_lat: 37.09,
   initial_lon: -96.70,
   hide_style_columns: true,
@@ -25,19 +25,22 @@ let default_config = {
     // my_column_name: (v) => `https://google.com?q=${ v }`
   },
   geostyle: {
-      "fillColor": "#ccfaa0",
-      "fillOpacity" : 0.05,
+      "fillColor": "#15b01a",
+      "fillOpacity" : 0.3,
       "color": "#552255",
       "weight": 1,
-      "radius": 3,
+      "radius": 6,
       "opacity": 0.9
   },
   hl_style:  {
-    "fillColor": "#000000",
-    "color": "#ff8c00",
-    "weight" : 5,
+    "fillColor": "#f97306",
+    "fillOpacity" : 0.5,
+    "color": "#552255",
+    "weight" : 1,
+    "radius": 6,
     "opacity": 0.9,
-  }
+  },
+  refresh_url: '/refresh'
 }
 
 function config(key) {
@@ -56,16 +59,19 @@ var pan_ok = true;
 var hl_row = false;
 var hl_hover = false;
 var dt_show = true;
+var select_point = false;
 
-// functions
-function generate_link() {
-  let el = document.getElementById('current_link');
+function make_link() {
   let base = `${location.origin}${location.pathname}`
   let latlng = map.getCenter()
   let q = new URLSearchParams(location.search)
   let params = Object.fromEntries(q.entries())
-  let link = `${base}?lat=${latlng.lat}&lon=${latlng.lng}&zoom=${map.getZoom()}`
-  el.innerHTML = `<a href=${link}>${link}</a>`
+  return `${base}?lat=${latlng.lat}&lon=${latlng.lng}&zoom=${map.getZoom()}`
+}
+function show_link() {
+  let el = document.getElementById('current_link');
+  let l = make_link();
+  el.innerHTML = `<a href="${l}">${l}</a>`
 }
 
 const is_geo_col = (name) => name.toLowerCase().endsWith('geojson')
@@ -90,69 +96,72 @@ function try_parse(maybe_json) {
   return parsed
 }
 
+function map_dataset(dataset) {
+ let row_number = 0
+ for (let row of dataset.content) {
+   all_layers[dataset.queryName][row_number] = {}
+   for (let col_spec of dataset.columns) {
+     let col = col_spec.name
+     if (!is_geo_col(col) && !looks_like_geo_data(row[col])) continue;
+     let geom = null
+     try {
+       geom = JSON.parse(row[col])
+     } catch(e) {
+       console.log("error parsing geojson", e)
+       continue
+     }
+     let layer_style = try_parse( row[`${col}_STYLE`] || row[`${col}_style`] ) || config('geostyle')
+     let hl_style = try_parse( row[`${col}_HLSTYLE`] || row[`${col}_hlstyle`] ) || config('hl_style')
+
+     let geolayer = L.geoJSON(geom,
+            { style: layer_style, pointToLayer: function (f,latlng) { return L.circleMarker(latlng,layer_style) } })
+     geolayer.on('mouseover', function() {
+        if (hl_hover) {
+          highlight_layers([ this ]);
+          document.getElementById('details').innerHTML = make_details(row);
+        }
+      })
+      geolayer.on('mouseout', function() { if (hl_hover) this.resetStyle() })
+      geolayer.on('click', function() {
+        highlight_layers([ this ])
+        let col = this.col_name;
+        let query = this.query_name;
+        let row_number = this.row_number;
+        let id = `cell_${query}_${col}_${row_number}`
+        show_tab(`${query}`)
+        let cell = document.getElementById(id)
+        cell.scrollIntoView({alignToTop: true})
+        highlight_csv_cell(cell)
+        let ds = datasets.filter( (l) => l.queryName == query )[0]
+        let row = ds.content[row_number]
+        document.getElementById('details').innerHTML = make_details(row);
+      })
+      all_layers[dataset.queryName][row_number][col] = geolayer;
+      geolayer.row_number = row_number
+      geolayer.col_name = col
+      geolayer.query_name= dataset.queryName
+      geolayer.hl_style = structuredClone( hl_style )
+      geolayer.addTo(map);
+    }
+    row_number += 1
+ }
+}
+
 function setup_map() {
   let q = new URLSearchParams(location.search)
   let params = Object.fromEntries(q.entries())
   let lat = params.lat || config('initial_lat')
   let lon = params.lon  || config('initial_lon')
   let zoom = params.zoom || config('initial_zoom')
-  map = L.map('map').setView([lat,lon], zoom );
+  map = L.map('map', {minZoom: 0, maxZoom: config('max_zoom') }).setView([lat,lon], zoom );
   map.doubleClickZoom.disable();
   let provider = config('tile_provider')
   L.tileLayer.provider(provider).addTo(map);
   L.control.scale().addTo(map);
 
-  var geolayer;
   for (let dataset of datasets) {
     all_layers[dataset.queryName] = {}
-    let row_number = 0
-    for (let row of dataset.content) {
-      all_layers[dataset.queryName][row_number] = {}
-      for (let col_spec of dataset.columns) {
-        let col = col_spec.name
-        if (!is_geo_col(col) && !looks_like_geo_data(row[col])) continue;
-        let geom = null
-        try {
-          geom = JSON.parse(row[col])
-        } catch(e) {
-          console.log("error parsing geojson", e)
-          continue
-        }
-        let layer_style = try_parse( row[`${col}_STYLE`] || row[`${col}_style`] ) || config('geostyle')
-        let hl_style = try_parse( row[`${col}_HLSTYLE`] || row[`${col}_hlstyle`] ) || config('hl_style')
-
-        let geolayer = L.geoJSON(geom,
-               { style: layer_style, pointToLayer: function (f,latlng) { return L.circleMarker(latlng,layer_style) } })
-        geolayer.on('mouseover', function() {
-           if (hl_hover) {
-             highlight_layers([ this ]);
-             document.getElementById('details').innerHTML = make_details(row);
-           }
-         })
-         geolayer.on('mouseout', function() { if (hl_hover) this.resetStyle() })
-         geolayer.on('click', function() {
-           highlight_layers([ this ])
-           let col = this.col_name;
-           let query = this.query_name;
-           let row_number = this.row_number;
-           let id = `cell_${query}_${col}_${row_number}`
-           show_tab(`${query}`)
-           let cell = document.getElementById(id)
-           cell.scrollIntoView({alignToTop: true})
-           highlight_csv_cell(cell)
-           let ds = datasets.filter( (l) => l.queryName == query )[0]
-           let row = ds.content[row_number]
-           document.getElementById('details').innerHTML = make_details(row);
-         })
-         all_layers[dataset.queryName][row_number][col] = geolayer;
-         geolayer.row_number = row_number
-         geolayer.col_name = col
-         geolayer.query_name= dataset.queryName
-         geolayer.hl_style = structuredClone( hl_style )
-         geolayer.addTo(map);
-       }
-       row_number += 1
-    }
+    map_dataset(dataset)
   }
 }
 
@@ -192,16 +201,62 @@ function make_details(j) {
  return out
 }
 
+// update data
+async function update_dataset(query_name) {
+  let el = document.getElementById(`table_${query_name}`)
+  el.innerHTML = ''
+  let cnt = el.appendChild(elt('div',{class: 'updating'}))
+  let pre = cnt.appendChild(elt('pre',{class: 'updating'},`-> updating dataset ${query_name}\n`))
+  let lat = document.getElementById('lat').innerHTML
+  let lon = document.getElementById('lon').innerHTML
+  let url = config('refresh_url')
+  console.log(`calling ${url}`)
+  if (!selected_latlon) {
+    selected_latlon = [ document.getElementById('lat').innerHTML, document.getElementById('lon').innerHTML ]
+  }
+  let body = JSON.stringify({
+      lat: selected_latlon[0],
+      lon: selected_latlon[1],
+      project: location.pathname.split('/').slice(-1)[0],
+      bounds: map.getBounds().toBBoxString(),
+      dataset: query_name
+    })
+  pre.innerHTML += `-> sending: ${body}\n`
+  const response = await fetch(url, { method: 'POST', body: body });
+  cnt.scrollIntoView(false)
+  for await (const chunk of response.body) {
+      let txt = new TextDecoder().decode(chunk);
+      pre.innerHTML += txt
+      cnt.scrollIntoView(false)
+  }
+  pre.innerHTML += `\n-> done\n`
+
+  let l = make_link()
+  cnt.append( elt('a', { href: l, class: 'refresh_button' }, "refresh page" ))
+}
+
 // events
 const mouselistener = (event) => {
   document.getElementById('lat').innerHTML = Math.round(event.latlng.lat * 10000000) / 10000000;
   document.getElementById('lon').innerHTML = Math.round(event.latlng.lng * 10000000) / 10000000;
 }
+let selected_circle = null;
+let selected_latlon = null;
+const clicklistener = (event) => {
+  if (!select_point) return;
+  let lat = document.getElementById('lat').innerHTML
+  let lon = document.getElementById('lon').innerHTML
+  if (selected_circle) selected_circle.removeFrom(map);
+  selected_latlon = [ lat, lon ]
+  selected_circle = L.circleMarker([lat,lon],{ radius: 20, fill: true, color: 'black', fillColor: '#d2bd0a' })
+  selected_circle.addTo(map)
+}
+
 const keylistener = (event) => {
   if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey)
     return
   const keyName = event.key;
-  if (keyName === 'l') generate_link()
+  if (keyName === 'l') show_link()
   if (keyName === 'b') {
     if (highlighted_layers) highlighted_layers.map( (l) => l.bringToBack() )
   }
@@ -263,8 +318,9 @@ function show_tab(query_name) {
     c.style.display = c.id == table_to_show ? '' : 'none'
   }
   for (let c of document.querySelector('#tabs').children) {
-    c.style.backgroundColor = c.id == tab_to_show ? '#00bb00' : 'white'
-    c.style.color           = c.id == tab_to_show ? 'white' : 'black'
+    c.style.backgroundColor  = c.id == tab_to_show ? 'white' : '#ddd'
+    c.style.color            = c.id == tab_to_show ? 'black' : '#444'
+    c.style['border-bottom'] = c.id == tab_to_show ? '2px solid white' : ''
   }
 }
 const tablistener = (e) => show_tab(e.target.dataset.query_name)
@@ -398,25 +454,17 @@ function setup_panels() {
   slider.addEventListener('input',handle_slider)
   mapdiv.appendChild(div({ id: 'details' }))
 
-  let pan = elt('input', {type: "checkbox", name: "auto-pan", checked: true})
-  controls.appendChild(pan)
-  controls.appendChild(elt('label',{for: 'auto-pan'}, 'auto pan'))
-  pan.addEventListener('click',() => { pan_ok = !pan_ok } )
-
-  let hl_row_box = elt('input', {type: "checkbox", name: "hl-row" })
-  controls.appendChild(hl_row_box)
-  controls.appendChild(elt('label',{for: 'hl-row'}, 'highlight row'))
-  hl_row_box.addEventListener('click',() => { hl_row = !hl_row } )
-
-  let hl_hover_box = elt('input', {type: "checkbox", name: "hl-hover" })
-  controls.appendChild(hl_hover_box)
-  controls.appendChild(elt('label',{for: 'hl-hover'}, 'highlight on hover'))
-  hl_hover_box.addEventListener('click',() => { hl_hover = !hl_hover } )
-
-  let show_details_box = elt('input', {type: "checkbox", name: "dt-show", checked: true })
-  controls.appendChild(show_details_box)
-  controls.appendChild(elt('label',{for: 'hl-hover'}, 'show details'))
-  show_details_box.addEventListener('click',() => { dt_show = !dt_show } )
+  const add_box = (name, label, args, handler) => {
+    let box = elt('input', {type: "checkbox", name: "auto-pan", ...args })
+    controls.appendChild(box)
+    controls.appendChild(elt('label',{for: name}, label))
+    box.addEventListener('click', handler )
+  }
+  add_box('auto-pan', 'auto pan', {checked: true}, () => { pan_ok = !pan_ok } )
+  add_box('hl-row', 'highlight row', {}, () => { hl_row = !hl_row } )
+  add_box('hl-hover', 'highlight on hover', {}, () => { hl_hover = !hl_hover } )
+  add_box('dt-show', 'show details', {checked: true}, () => { dt_show = !dt_show } )
+  add_box('select-point', 'select point', {}, () => { select_point = !select_point } )
 
   return panels
 }
@@ -465,6 +513,56 @@ function set_slider_dataset(d) {
   timeline_dataset = d
 }
 
+function show_dataset(table, d) {
+  let btn_attrs = { class: 'update_button', "data-query_name" : d.queryName, onclick: `update_dataset("${d.queryName}")` }
+  if (!d.can_update) btn_attrs.disabled = true
+  table.appendChild(elt('caption', {},
+    elt('div', { class: 'left info' }, `${d.count} row${d.count == 1 ? '' : 's'}`) ,
+    elt('div', { class: 'right' }, 
+      elt('button', btn_attrs, `update ${d.queryName}`),
+      elt('a', { href: d.csv, target: '_blank', class: 'download' }, 'download csv')
+    )
+  ))
+  if (config('hide_style_columns')) {
+    table.appendChild( elt('tr', {}, ...d.columns
+      .filter( c => !is_style_col(c.name) )
+      .map( c => elt('th', { alt: c.name, title: c.name }, c.name) ) ) )
+  } else {
+    table.appendChild( elt('tr', {}, ...d.columns.map( c => elt('th', { alt: c.name, title: c.name }, c.name) ) ) )
+  }
+  console.log(`rows in dataset ${d.queryName} : ${d.count}`)
+  let row_number = 0;
+  for ( let row of d.content ) {
+    let tr = elt('tr',{})
+    for (let col of d.columns) {
+      let data_attrs = { "data-query_name" : d.queryName, "data-col_name" : col.name, "data-row_number" : row_number }
+      let cell = div({class: 'csv_cell', ...data_attrs } )
+      if (is_geo_col(col.name) || looks_like_geo_data(row[col.name])) {
+        cell.appendChild(
+          elt( 'div', { class: 'geo_cell', ...data_attrs },
+              describe_geodata(row[col.name]),
+              elt( 'button', { class: 'geocopy', onclick: `{window.open().document.write(${ JSON.stringify(row[col.name]) });}`  }, '📋'),
+             )
+        )
+      } else if (is_style_col(col.name)) {
+        if (config('hide_style_columns')) continue;
+        cell.appendChild(
+          elt( 'div', { class: 'geo_cell', ...data_attrs },
+              elt( 'i', {}, 'style' ),
+              elt( 'button', { onclick: `{window.open().document.write(${ JSON.stringify(row[col.name]) });}`  }, '📋'),
+             )
+        )
+      } else { 
+        cell.appendChild( document.createTextNode( row[col.name] ) )
+      }
+      let new_id = `cell_${d.queryName}_${col.name}_${row_number}`
+      tr.appendChild( elt('td', { class: 'csv_td', id: new_id } , cell ) )
+    }
+    table.appendChild(tr)
+    row_number += 1;
+  }
+}
+
 function setup_data(panels) {
   let csv_data = panels.appendChild(elt('div',{id: 'csv_data'}))
   let tabs = csv_data.appendChild(div({id:'tabs'}))
@@ -484,50 +582,9 @@ function setup_data(panels) {
       set_slider_dataset(d)
       added_slider = true
     }
-    let row_number = 0;
     let table = elt('table', { class: 'csv_data', id: `table_${d.queryName}` })
     tables.appendChild(table)
-    table.appendChild(elt('caption', {},
-      `${d.queryName} (${d.count} row${d.count == 1 ? '' : 's'})`,
-      elt('a', { href: d.csv, target: '_blank', class: 'download' }, 'download csv')
-    ))
-    if (config('hide_style_columns')) {
-      table.appendChild( elt('tr', {}, ...d.columns
-        .filter( c => !is_style_col(c.name) )
-        .map( c => elt('th', { alt: c.name, title: c.name }, c.name) ) ) )
-    } else {
-      table.appendChild( elt('tr', {}, ...d.columns.map( c => elt('th', { alt: c.name, title: c.name }, c.name) ) ) )
-    }
-    console.log(`rows in dataset ${d.queryName} : ${d.count}`)
-    for ( let row of d.content ) {
-      let tr = elt('tr',{})
-      for (let col of d.columns) {
-        let data_attrs = { "data-query_name" : d.queryName, "data-col_name" : col.name, "data-row_number" : row_number }
-        let cell = div({class: 'csv_cell', ...data_attrs } )
-        if (is_geo_col(col.name) || looks_like_geo_data(row[col.name])) {
-          cell.appendChild(
-            elt( 'div', { class: 'geo_cell', ...data_attrs },
-                describe_geodata(row[col.name]),
-                elt( 'button', { class: 'geocopy', onclick: `{window.open().document.write(${ JSON.stringify(row[col.name]) });}`  }, '📋'),
-               )
-          )
-        } else if (is_style_col(col.name)) {
-          if (config('hide_style_columns')) continue;
-          cell.appendChild(
-            elt( 'div', { class: 'geo_cell', ...data_attrs },
-                elt( 'i', {}, 'style' ),
-                elt( 'button', { onclick: `{window.open().document.write(${ JSON.stringify(row[col.name]) });}`  }, '📋'),
-               )
-          )
-        } else { 
-          cell.appendChild( document.createTextNode( row[col.name] ) )
-        }
-        let new_id = `cell_${d.queryName}_${col.name}_${row_number}`
-        tr.appendChild( elt('td', { class: 'csv_td', id: new_id } , cell ) )
-      }
-      table.appendChild(tr)
-      row_number += 1;
-    }
+    show_dataset(table, d);
   }
 }
 
@@ -547,7 +604,9 @@ function main() {
   document.addEventListener('keydown', keylistener)
   document.getElementById('csv_data').addEventListener('click', csvlistener)
   document.getElementById('tabs').addEventListener('click', tablistener)
+  show_tab( datasets[0].queryName )
   map.addEventListener('mousemove', mouselistener)
+  map.addEventListener('click', clicklistener)
 }
 
 main()

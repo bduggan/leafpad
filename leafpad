@@ -2,6 +2,7 @@
 use Mojolicious::Lite -signatures;
 use Mojo::File       qw/path/;
 use Mojo::Collection qw/c/;
+use Mojo::JSON       qw/encode_json/;
 
 my $data_dir = path(app->home->child('data'));
 
@@ -10,6 +11,26 @@ my $default_lat  = 37.09;
 my $default_lon  = -96.7;
 
 app->defaults(zoom => $default_zoom, layout => 'default' );
+plugin Config => default => {
+  local_update_handler => 'leafpad-update',
+  global_update_handler => do { my $x = `which leafpad-update`; chomp $x; $x },
+  src_dir => $data_dir
+};
+
+app->helper(update_handler => sub ($c, $project, $dataset) {
+  my $handler;
+  my $src_dir = app->config->{src_dir};
+  my $local_handler = app->config->{local_update_handler};
+  my $global_handler = app->config->{global_update_handler};
+  if (-d $src_dir && -x "$src_dir/$project/$dataset") {
+    $handler = "$src_dir/$project/$dataset";
+  } elsif (-x "$src_dir/$project/$local_handler") {
+    $handler = "$src_dir/$project/$local_handler";
+  } elsif (-x "$global_handler") {
+    $handler = $global_handler;
+  }
+  $handler;
+});
 
 package Geofile {
   use Mojo::Base qw/-base -signatures/;
@@ -57,7 +78,7 @@ get '/' => { layout => 'bare' } => sub($c) {
   $c->set_defaults;
   $c->stash(csv_files => $data_dir
         ->list({dir => 1})
-        ->grep(sub { /.csv/ || -d "$_" })
+        ->grep(sub { /\.csv$/ || -d "$_" })
         ->sort(sub { $b->stat->atime <=> $a->stat->atime } ) );
 } => 'index';
 
@@ -67,7 +88,7 @@ get '/show/csv/*name' => sub($c) {
   my $io   = $data_dir->child("$name");
   if (-d $io) {
     $c->stash(geofiles =>
-        $io->list->grep(sub { /\.csv/ })->map(sub { Geofile->ingest("$_") }));
+        $io->list->grep(sub { /\.csv$/ })->map(sub { Geofile->ingest("$_") }));
   } else {
     $c->stash(geofiles => [Geofile->ingest("$io.csv")]);
   }
@@ -78,7 +99,7 @@ get 'datasets/*name/data.js' => { format => 'js' } => sub($c) {
   my $name = $c->stash('name');
   my $io = $data_dir->child($name);
   if (-d $io) {
-    $c->stash(geofiles => $io->list->grep(sub { /\.csv/ })->map(sub { Geofile->ingest("$_") }));
+    $c->stash(geofiles => $io->list->grep(sub { /\.csv$/ })->map(sub { Geofile->ingest("$_") }));
     if (-e $io->child("config.js") ) {
       $c->stash(leafpad_config => $io->child('config.js')->slurp)
     }
@@ -89,9 +110,43 @@ get 'datasets/*name/data.js' => { format => 'js' } => sub($c) {
   $c->render('datasets', format => 'js');
 } => 'datasets';
 
+get 'dataset/*name/data.js' => { format => 'js' } => sub($c) {
+  my $name = $c->stash('name');
+  my $io = $data_dir->child($name);
+  $c->stash(geofile => Geofile->ingest("$io.csv"));
+  $c->render('dataset', format => 'js');
+} => 'dataset';
+
 get 'csv/*name' => sub ($c) {
   my $io = $data_dir->child($c->stash('name') . '.csv');
   $c->render( text => $io->slurp, format => 'txt' );
 } => 'csv';
+
+post 'refresh' => sub ($c) {
+  my $data = $c->req->json;
+  my ($lat,$lon,$project,$dataset) = @$data{qw/lat lon project dataset/};
+  $data->{output_to} = $data_dir->child($project)->child($dataset) . '.csv';
+  my $json = encode_json($data);
+  # we expect the keys: lat, lon, project, dataset, bounds
+  my $handler = $c->update_handler($project,$dataset) or
+    return $c->render( text => "no handler found for $project/$dataset" );
+  $c->inactivity_timeout(300);
+  my $sub = Mojo::IOLoop->subprocess;
+  $c->res->headers->content_type('text/plain');
+  $c->write;
+  $sub->on( progress => sub ($subp, $data) { $c->write($data) if $c->tx; });
+  $sub->run_p(sub($subp) {
+    $c->app->log->debug("running $handler '$json'");
+    open(my $fh, '-|', $handler, $json) or return $c->render( text => "error starting $handler: $!" );
+    while (<$fh>) { $subp->progress("$_"); }
+    close $fh;
+  })->then(sub($res) {
+    $c->app->log->debug("succesfully ran $handler");
+    $c->finish('-- finished --');
+  })->catch(sub($err) {
+    $c->app->log->error("exec failed: $err");
+    $c->finish("errors: $err");
+  });
+} => 'refresh';
 
 app->start;

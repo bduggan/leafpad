@@ -1,10 +1,11 @@
 div#csv_data {
   overflow-y: scroll;
-  border:1px solid #888;
+  padding:10px;
 }
 .panels {
   display:grid;
-  grid-template-rows: 70vh auto 20vh ;
+  grid-template-rows: 65vh auto 20vh ;
+  border-bottom: 1px solid #ddd;
   grid-template-columns: 1fr;
 }
 #details {
@@ -32,15 +33,23 @@ table {
 table.csv_data {
   width: 100%;
 }
+table.csv_data caption {
+  font-family: monospace;
+  margin-top: 1px;
+}
 table.csv_data tr th {
   max-width: 5vh;
   overflow:hidden;
   text-overflow: ellipsis;
   font-weight: normal;
+  font-family: monospace;
   font-size: 90%;
+  color: #5b7c99;
 }
-td {
-  border: 1px solid #ddd;
+table.csv_data tr td {
+  border: 1px solid #eee;
+  color: #042e60;
+  font-family: monospace;
 }
 div.header {
   position:relative;
@@ -71,29 +80,49 @@ a {
   text-decoration:none;
   color:#004400;
 }
+div#tabs {
+  margin-bottom: -1px;
+}
 div#tabs div {
+  margin-top: 5px;
   display:inline-block;
-  border:1px solid #0b0;
-  padding-left:2px;
-  padding-right:2px;
+  border-top:1px solid #000;
+  border-left:1px solid #000;
+  border-right:1px solid #000;
+  padding-left:10px;
+  padding-right:10px;
+  margin-left: 2px;
+  margin-right: 2px;
 }
 div#tabs div:hover {
+  margin-top: 5px;
   display:inline-block;
-  border:1px solid #0b0;
-  background-color: #0b0;
-  color:white;
-  padding-left:2px;
-  padding-right:2px;
+  border-top:1px solid #000;
+  border-left:1px solid #000;
+  border-right:1px solid #000;
+  padding-left:10px;
+  padding-right:10px;
+  margin-left: 2px;
+  margin-right: 2px;
 }
 div.csv_cell {
 }
 div.csv_cell:hover {
 }
 td.csv_td { }
+.right {
+  float: right;
+}
+.left {
+  float: left;
+}
+.info {
+  padding: 2px;
+  border: 1px solid #eee;
+  margin: 5px;
+}
 a.download {
-  float:right;
-  padding-right: 5px;
-  padding-left: 5px;
+  padding: 5px;
   border: 1px solid #9a9;
   background-color: #dfd;
 }
@@ -101,6 +130,8 @@ div.geo_cell {
 }
 div.geo_cell button {
   float:right;
+  box-shadow: none;
+  font-size: 50%;
 }
 div.error {
   background-color: #ffdddd;
@@ -110,6 +141,8 @@ div.error {
 }
 div.controls {
   width: 100%;
+  color: #6b8ba4;
+  text-align: center;
 }
 input#timeline {
   width: 100%;
@@ -124,4 +157,34 @@ input#timeline {
   display: grid;
   grid-template-columns: 50px 1fr;
   margin-top: 2px;
+}
+.update_button {
+  padding: 5px;
+  background-color: #d2bd0a;
+  box-shadow: 2px 2px 2px #777;
+  border-radius: 0px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  border: 1px solid black;
+}
+.update_button:hover {
+  background-color: #f0e50a;
+}
+#csv_tables {
+  border-top: 1px solid black;
+}
+div.updating {
+  padding-bottom: 2px;
+}
+pre.updating {
+  background-color:black;
+  color:white;
+  padding: 5px;
+  white-space: pre-wrap;
+}
+a.refresh_button {
+  background-color: #aa23ff;
+  border: 1px solid black;
+  padding: 5px;
+  color: white;
 }

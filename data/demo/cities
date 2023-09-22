@@ -1,0 +1,5 @@
+#!/bin/sh
+
+echo "file $0 received $1"
+echo "this file will be run to update the cities.csv dataset"
+

@@ -1,35 +1,95 @@
 ## leafpad
 
-Quickly convert CSV files or SQL result sets into geospatial visualizations.
+A geospatial exploration platform
 
-### What does it do?
+## Description
 
-You start with this:
-```
-name,box,box_style
-nyc,40.730610,-73.935242,"{""type"":""Feature"",""properties"":{},""geometry"":{""coordinates"":[[[-74.05944756456219,41.027671563014025],[-74.05944756456219,40.535214985745114],[-73.4687494975488,40.535214985745114],[-73.4687494975488,41.027671563014025],[-74.05944756456219,41.027671563014025]]],""type"":""Polygon""}}","{""color"":""cyan""}"
-sf,37.773972,-122.431297,"{""type"":""Feature"",""properties"":{},""geometry"":{""coordinates"":[[[-122.53788826361247,37.8117481985156],[-122.53788826361247,37.60331129137758],[-122.32809344202103,37.60331129137758],[-122.32809344202103,37.8117481985156],[-122.53788826361247,37.8117481985156]]],""type"":""Polygon""}}","{""color"":""hsl(147, 50%, 47%)""}"
-```
+Leafpad is a framework for geographical data visualization and exploration.
 
-And get this:
+It uses the excellent [leaflet](https://leafletjs.com/) library.
 
-<img width="1450" alt="image" src="https://user-images.githubusercontent.com/58956/234868080-582fe1e7-0a19-4280-b74f-a1fcf09b8c2f.png">
+## How it works
 
-### Okay, tell me more
+### Viewing data
 
-- Columns that look like geojson are rendered as geojson
-- Columns ending in _style are styles applied to that layer
-- Columns ending in _hlstyle are styles used when that layer is highlighted
-- Specifically: the style should be valid JSON with attributes that can be found [here](https://leafletjs.com/reference.html#path-option)
-- Click on the map to find the corresponding row in the CSV
-- Click on a cell in the table to find it on the map
-- Click on the box on the right hand side of a geojson cell to see the raw geojson
-- Use the slider to animate selecting the rows one at a time
-- Unselect "auto pan" to keep the map from moving while selecting
-- Select "highlight on hover" to show geojson elements by hovering the mouse
-- Select "highlight row" to show all the geojson objects in a row, instead of just the selected column
-- Put several CSV files in the same directory to load them all
-- Add a file named "config.js" in that directory to have it included in the page
+1. Put files into a directory:
+
+       data
+       └── demo                     <-- project
+           └─── cities.csv          <-- dataset
+
+2. Open a web browser to
+
+   http://localhost:3000
+
+3. Click `demo` to go to http://localhost:3000/show/csv/demo
+
+4. Click on a column to visit it on the map
+
+### Updating data
+
+A button labeled "update cities" will appear on the web page.  This
+will be enabled if it finds any of the following executable files:
+
+    1. data/demo/cities
+    2. data/demo/leafpad-update
+    3. leafpad-update # (somehere in $PATH)
+
+Clicking "update cities" will execute this file, with one
+JSON argument which has the state of the map (bounds and
+selected lat/lon), and the project ('demo') and the
+dataset ('cities').
+
+### Configuration
+
+If the file data/demo/config.js is found, it will be used to configure the
+view of this dataset.  See below for options.
+
+## Installation
+
+Install `cpanminus` with `curl -L https://cpanmin.us | bash`
+
+Then download leafpad and install the dependencies:
+
+    $ git clone https://github.com/bduggan/leafpad
+    $ cd leafpad
+    $ cpanm --installdeps .
+
+Now you're ready!
+
+## Running
+
+The directory `data/demo` is a project with a few datasets.
+Start the webserver with
+
+     ./leafpad daemon
+
+and go to http://localhost:3000 and click on "demo"
+
+## Documentation
+
+### How dataset columns are rendered
+
+    - Columns that look like geojson are rendered as geojson
+    - Columns ending in _style are styles applied to the corresponding column
+    - Columns ending in _hlstyle are styles used when that layer is highlighted
+    - Valid style options are can be found [here](https://leafletjs.com/reference.html#path-option)
+
+### Interacting with the map
+
+    - Click on an element on the map to find the corresponding row in the datasets
+    - Click on a cell in the table to find it on the map
+    - Click on the box on the right hand side of a geojson cell in the table to see the raw geojson
+    - Use the slider to animate selecting the rows one at a time
+    - Unselect "auto pan" to keep the map from moving while selecting
+    - Select "highlight on hover" to show geojson elements by hovering the mouse instead of clicking
+    - Select "highlight row" to show all the geojson objects in a row, instead of just the selected column
+
+### Animation
+
+   - Animation can be achieved by setting the _style associated with a column to 0.0, and setting the _hlstyle
+     associated with a column to something non-zero.  Then when scrolling through the rows of a dataset, only
+     the currently highlighted row will be visible.
 
 ### Configuration
 
@@ -62,14 +122,9 @@ Valid configuration settings are:
 
 See [leafpad.js](public/leafpad.js) for examples.
 
-###  How do I use it locally?
+### Compatibility
 
-1. Start a local web server
-1. Put a csv file into the `data` directory (demo.csv is there by default)
-2. Open a browser to http://localhost:3000 and click on "demo"
-5. That's it!
-
-### How do I run it in mode analytics?
+Leafpad is compatible with _mode analytics_.
 
 To use the javascript in mode analytics, include the following in your HTML:
 
@@ -81,27 +136,4 @@ To use the javascript in mode analytics, include the following in your HTML:
 <script src="https://unpkg.com/leaflet-providers@1.13.0/leaflet-providers.js"></script>
 <script src="https://bduggan.github.io/leafpad/public/leafpad.js"></script>
 ```
-
-### How do I install it?
-
-1. Clone this repo
-    ```
-    git clone https://github.com/bduggan/leafpad
-    ```
-
-2. Install a recent Perl and cpanminus (`cpanm`)
-   See https://perlbrew.pl/ or use a package manager for your distribution.
-
-3. Install Mojolicious and Text::CSV_XS:
-     ```
-     cpanm Mojolicious
-     cpanm Text::CSV_XS
-     ```
-
-4. Start the web server
-     ```
-     ./leafpad daemon
-     ```
-
-5. Enjoy!
 
