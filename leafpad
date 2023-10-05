@@ -97,7 +97,7 @@ get '/show/csv/*name' => sub($c) {
   $c->render(template => 'show');
 } => 'show';
 
-get 'datasets/*name/data.js' => { format => 'js' } => sub($c) {
+get 'datasets/*name/data.js' => { format => 'js', layout => '' } => sub($c) {
   my $name = $c->stash('name');
   my $io = $data_dir->child($name);
   if (-d $io) {
