@@ -173,7 +173,7 @@ function col_link(c,v) {
 
 function make_details(j) {
  if (!dt_show) return ''
-  
+
  let out = '<table>'
  for (let k of Object.keys(j)) {
   if (is_geo_col(k) || looks_like_geo_data(j[k])) {
@@ -515,10 +515,13 @@ function set_slider_dataset(d) {
 
 function show_dataset(table, d) {
   let btn_attrs = { class: 'update_button', "data-query_name" : d.queryName, onclick: `update_dataset("${d.queryName}")` }
-  if (!d.can_update) btn_attrs.disabled = true
+  if (!d.can_update) {
+    btn_attrs = { disabled: true, class: 'disabled_update_button' }
+  }
+
   table.appendChild(elt('caption', {},
     elt('div', { class: 'left info' }, `${d.count} row${d.count == 1 ? '' : 's'}`) ,
-    elt('div', { class: 'right' }, 
+    elt('div', { class: 'right' },
       elt('button', btn_attrs, `update ${d.queryName}`),
       elt('a', { href: d.csv, target: '_blank', class: 'download' }, 'download csv')
     )
@@ -552,7 +555,7 @@ function show_dataset(table, d) {
               elt( 'button', { onclick: `{window.open().document.write(${ JSON.stringify(row[col.name]) });}`  }, '📋'),
              )
         )
-      } else { 
+      } else {
         cell.appendChild( document.createTextNode( row[col.name] ) )
       }
       let new_id = `cell_${d.queryName}_${col.name}_${row_number}`

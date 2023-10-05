@@ -11,6 +11,8 @@ my $default_lat  = 37.09;
 my $default_lon  = -96.7;
 
 app->defaults(zoom => $default_zoom, layout => 'default' );
+
+# These values can be set in leafpad.conf
 plugin Config => default => {
   local_update_handler => 'leafpad-update',
   global_update_handler => do { my $x = `which leafpad-update`; chomp $x; $x },
@@ -133,7 +135,7 @@ post 'refresh' => sub ($c) {
   $c->inactivity_timeout(300);
   my $sub = Mojo::IOLoop->subprocess;
   $c->res->headers->content_type('text/plain');
-  $c->write;
+  $c->write("Running $handler");
   $sub->on( progress => sub ($subp, $data) { $c->write($data) if $c->tx; });
   $sub->run_p(sub($subp) {
     $c->app->log->debug("running $handler '$json'");

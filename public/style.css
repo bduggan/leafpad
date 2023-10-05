@@ -167,7 +167,15 @@ input#timeline {
   margin-bottom: 5px;
   border: 1px solid black;
 }
-.update_button:hover {
+.disabled_update_button {
+  padding: 5px;
+  background-color: #d2d2d2;
+  border-radius: 0px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  border: 1px solid #888888;
+  color: #888888;
+}.update_button:hover {
   background-color: #f0e50a;
 }
 #csv_tables {
