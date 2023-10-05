@@ -26,6 +26,8 @@ It uses the excellent [leaflet](https://leafletjs.com/) library.
 
 4. Click on a column to visit it on the map
 
+<img width="1191" alt="screenshot" src="https://github.com/bduggan/leafpad/assets/58956/d674c91f-7db9-41df-95d7-c081881ed71a">
+
 ### Updating data
 
 A button labeled "update cities" will appear on the web page.  This
