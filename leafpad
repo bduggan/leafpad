@@ -139,7 +139,7 @@ post 'refresh' => sub ($c) {
   $sub->on( progress => sub ($subp, $data) { $c->write($data) if $c->tx; });
   $sub->run_p(sub($subp) {
     $c->app->log->debug("running $handler '$json'");
-    open(my $fh, '-|', $handler, $json) or return $c->render( text => "error starting $handler: $!" );
+    open(my $fh, '-|', "$handler $json 2>&1") or return $c->render( text => "error starting $handler: $!" );
     while (<$fh>) { $subp->progress("$_"); }
     close $fh;
   })->then(sub($res) {
