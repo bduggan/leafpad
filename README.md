@@ -118,6 +118,7 @@ Valid configuration settings are:
 - initial_zoom, initial_lat, initial_lon
 - max_zoom -- maximum zoom value
 - geostyle -- default style for geojson shapes
+- pt_style -- default style for points
 - hl_style -- default highlight style
 - hide_style_columns -- hide columns named _style and _hlstyle in the rows?
 - column_links -- a mapping from column names to functions that generate an href

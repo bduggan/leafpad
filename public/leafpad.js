@@ -26,9 +26,17 @@ let default_config = {
   },
   geostyle: {
       "fillColor": "#15b01a",
-      "fillOpacity" : 0.3,
+      "fillOpacity" : 0.1,
       "color": "#552255",
       "weight": 1,
+      "radius": 6,
+      "opacity": 0.9
+  },
+  pt_style: {
+      "fillColor": "#062e03",
+      "fillOpacity" : 0.7,
+      "color": "#062e03",
+      "weight": 2,
       "radius": 6,
       "opacity": 0.9
   },
@@ -112,9 +120,15 @@ function map_dataset(dataset) {
      }
      let layer_style = try_parse( row[`${col}_STYLE`] || row[`${col}_style`] ) || config('geostyle')
      let hl_style = try_parse( row[`${col}_HLSTYLE`] || row[`${col}_hlstyle`] ) || config('hl_style')
+     let point_style = try_parse( row[`${col}_pt_STYLE`] || row[`${col}_pt_style`] ) || config('pt_style') || layer_style
 
      let geolayer = L.geoJSON(geom,
-            { style: layer_style, pointToLayer: function (f,latlng) { return L.circleMarker(latlng,layer_style) } })
+            {
+              style: function(feature) {
+                if (feature.geometry.type == 'Point') return point_style
+                return layer_style
+              },
+              pointToLayer: function (f,latlng) { return L.circleMarker(latlng,point_style) } })
      geolayer.on('mouseover', function() {
         if (hl_hover) {
           highlight_layers([ this ]);
