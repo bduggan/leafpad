@@ -1,10 +1,19 @@
 #!/usr/bin/env perl
 use Mojolicious::Lite -signatures;
-use Mojo::File       qw/path/;
+use Mojo::File       qw/curfile path/;
 use Mojo::Collection qw/c/;
 use Mojo::JSON       qw/encode_json/;
 
-my $data_dir = path(app->home->child('data'));
+use lib curfile->sibling('lib')->to_string;
+
+use Leafpad;
+
+app->home( Leafpad->home );
+
+app->static->paths->[0] = app->home->child('public');
+app->renderer->paths->[0] = app->home->child('templates');
+
+my $data_dir = path($ENV{LEAFPAD_DATA} // ($ENV{HOME} . '/leafpad-data'));
 
 my $default_zoom = 5;
 my $default_lat  = 37.09;
@@ -77,6 +86,9 @@ app->helper(set_defaults => sub($c) {
 });
 
 get '/' => { layout => 'bare' } => sub($c) {
+  unless (-d app->renderer->paths->[0]) {
+    print "template dir not found: " . app->renderer->paths->[0];
+  }
   $c->set_defaults;
   $c->stash(csv_files => $data_dir
         ->list({dir => 1})
