@@ -14,9 +14,13 @@ It uses the excellent [leaflet](https://leafletjs.com/) library.
 
 1. Put files into a directory:
 
-       data
-       └── demo                     <-- project
-           └─── cities.csv          <-- dataset
+           leafpad-data
+                   └── demo                     <-- project
+                       └─── cities.csv          <-- dataset
+
+    By default leafpad will look in $HOME/leafpad-data.  This
+    can be changed by setting the LEAFPAD_DATA environment
+    variable.
 
 2. Open a web browser to
 
@@ -33,8 +37,8 @@ It uses the excellent [leaflet](https://leafletjs.com/) library.
 A button labeled "update cities" will appear on the web page.  This
 will be enabled if it finds any of the following executable files:
 
-    1. data/demo/cities
-    2. data/demo/leafpad-update
+    1. leafpad-data/demo/cities
+    2. leafpad-data/demo/leafpad-update
     3. leafpad-update # (somehere in $PATH)
 
 Clicking "update cities" will execute this file, with one
@@ -44,7 +48,7 @@ dataset ('cities').
 
 ### Configuration
 
-If the file data/demo/config.js is found, it will be used to configure the
+If the file leafpad-data/demo/config.js is found, it will be used to configure the
 view of this dataset.  See below for options.
 
 ## Installation
@@ -61,7 +65,7 @@ Now you're ready!
 
 ## Running
 
-The directory `data/demo` is a project with a few datasets.
+The directory `leafpad-data/demo` is a project with a few datasets.
 Start the webserver with
 
      ./leafpad daemon
