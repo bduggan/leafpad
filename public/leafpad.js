@@ -53,7 +53,12 @@ let default_config = {
 
 function config(key) {
   if (typeof(leafpad_config) == 'undefined') return default_config[key]
-  if (key in leafpad_config) return leafpad_config[key]
+  if ( (key in leafpad_config) && (typeof(leafpad_config[key]) != 'object') ) {
+    return leafpad_config[key]
+  }
+  if (key in leafpad_config && typeof(default_config[key]) === 'object') {
+    return Object.assign( default_config[key], leafpad_config[key] )
+  }
   return default_config[key]
 }
 
@@ -118,9 +123,11 @@ function map_dataset(dataset) {
        console.log("error parsing geojson", e)
        continue
      }
-     let layer_style = try_parse( row[`${col}_STYLE`] || row[`${col}_style`] ) || config('geostyle')
-     let hl_style = try_parse( row[`${col}_HLSTYLE`] || row[`${col}_hlstyle`] ) || config('hl_style')
-     let point_style = try_parse( row[`${col}_pt_STYLE`] || row[`${col}_pt_style`] ) || config('pt_style') || layer_style
+     let ucol = col.toUpperCase()
+     let lcol = col.toLowerCase()
+     let layer_style = try_parse( row[`${ucol}_STYLE`] || row[`${lcol}_style`] ) || config('geostyle')
+     let hl_style = try_parse( row[`${ucol}_HLSTYLE`] || row[`${lcol}_hlstyle`] ) || config('hl_style')
+     let point_style = try_parse( row[`${ucol}_PT_STYLE`] || row[`${lcol}_pt_style`] ) || config('pt_style') || layer_style
 
      let geolayer = L.geoJSON(geom,
             {
