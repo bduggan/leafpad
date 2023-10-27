@@ -131,8 +131,8 @@ get 'dataset/*name/data.js' => { format => 'js' } => sub($c) {
   $c->render('dataset', format => 'js');
 } => 'dataset';
 
-get 'csv/*name' => sub ($c) {
-  my $io = $data_dir->child($c->stash('name') . '.csv');
+get 'csv/:proj/*name' => sub ($c) {
+  my $io = $data_dir->child($c->stash('proj'))->child($c->stash('name'). '.csv');
   $c->render( text => $io->slurp, format => 'txt' );
 } => 'csv';
 
@@ -147,11 +147,11 @@ post 'refresh' => sub ($c) {
   $c->inactivity_timeout(300);
   my $sub = Mojo::IOLoop->subprocess;
   $c->res->headers->content_type('text/plain');
-  $c->write("Running $handler");
+  $c->write("Running $handler '$json'\n");
   $sub->on( progress => sub ($subp, $data) { $c->write($data) if $c->tx; });
   $sub->run_p(sub($subp) {
     $c->app->log->debug("running $handler '$json'");
-    open(my $fh, '-|', "$handler $json 2>&1") or return $c->render( text => "error starting $handler: $!" );
+    open(my $fh, '-|', "$handler",$json) or return $c->render( text => "error starting $handler: $!" );
     while (<$fh>) { $subp->progress("$_"); }
     close $fh;
   })->then(sub($res) {

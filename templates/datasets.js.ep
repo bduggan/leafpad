@@ -13,14 +13,15 @@ var datasets = [];
     % for my $row (@{ $d->geodata || [] }) {
       content.push(<%== b(Mojo::JSON::encode_json({  map { uc $_ => $row->{$_} } @{ $d->header }  }))->decode %>)
     % }
+    % my $proj = $c->req->url->path->parts->[-2];
     datasets.push( {
        queryName: "<%= $d->name %>",
        columns: columns,
        content: content,
        count: <%= +@{ $d->geodata || [] } %>,
-       csv: "<%= url_for('csv', name => $d->name)->to_abs %>",
+       csv: "<%= url_for('csv', proj => $proj, name => $d->name)->to_abs %>",
        oversized: false,
-       can_update: <%= update_handler($c->req->url->path->parts->[-2], $d->name) ? 'true' : 'false' %>,
+       can_update: <%= update_handler($proj, $d->name) ? 'true' : 'false' %>,
        } )
   }
 % }
