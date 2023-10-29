@@ -128,14 +128,20 @@ function map_dataset(dataset) {
      let layer_style = try_parse( row[`${ucol}_STYLE`] || row[`${lcol}_style`] ) || config('geostyle')
      let hl_style = try_parse( row[`${ucol}_HLSTYLE`] || row[`${lcol}_hlstyle`] ) || config('hl_style')
      let point_style = try_parse( row[`${ucol}_PT_STYLE`] || row[`${lcol}_pt_style`] ) || config('pt_style') || layer_style
-
+     let icon = row[`${ucol}_ICON`] || row[`${lcol}_icon`] || config('default_icon')
      let geolayer = L.geoJSON(geom,
             {
               style: function(feature) {
                 if (feature.geometry.type == 'Point') return point_style
                 return layer_style
               },
-              pointToLayer: function (f,latlng) { return L.circleMarker(latlng,point_style) } })
+              pointToLayer:
+                 icon
+                 ? function (f,latlng) { return L.marker( latlng, { icon: L.divIcon({ className: 'icon-style', html: icon, iconSize: 'auto', }) }) }
+                 : function (f,latlng) { return L.circleMarker(latlng,point_style) }
+           }
+     )
+
      geolayer.on('mouseover', function() {
         if (hl_hover) {
           highlight_layers([ this ]);
