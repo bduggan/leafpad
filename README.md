@@ -76,26 +76,26 @@ and go to http://localhost:3000 and click on "demo"
 
 ### How dataset columns are rendered
 
-    - Columns that look like geojson are rendered as geojson
-    - Columns ending in _style or _pt_style are styles applied to the corresponding column
-    - Columns ending in '_icon' are used as text for the icon of a corresponding column
-    - Columns ending in '_icon_class' are used for the class.  [xkcd color names](https://xkcd.com/color/rgb/) are included with the stylesheet.
-    - Columns ending in _hlstyle are styles used when that layer is highlighted
-    - Valid style options are can be found [here](https://leafletjs.com/reference.html#path-option)
+- Columns that look like geojson are rendered as geojson
+- Columns ending in _style or _pt_style are styles applied to the corresponding column
+- Columns ending in '_icon' are used as text for the icon of a corresponding column
+- Columns ending in '_icon_class' are used for the class.  [xkcd color names](https://xkcd.com/color/rgb/) are included with the stylesheet.
+- Columns ending in _hlstyle are styles used when that layer is highlighted
+- Valid style options are can be found [here](https://leafletjs.com/reference.html#path-option)
 
 ### Interacting with the map
 
-    - Click on an element on the map to find the corresponding row in the datasets
-    - Click on a cell in the table to find it on the map
-    - Click on the box on the right hand side of a geojson cell in the table to see the raw geojson
-    - Use the slider to animate selecting the rows one at a time
-    - Unselect "auto pan" to keep the map from moving while selecting
-    - Select "highlight on hover" to show geojson elements by hovering the mouse instead of clicking
-    - Select "highlight row" to show all the geojson objects in a row, instead of just the selected column
+- Click on an element on the map to find the corresponding row in the datasets
+- Click on a cell in the table to find it on the map
+- Click on the box on the right hand side of a geojson cell in the table to see the raw geojson
+- Use the slider to animate selecting the rows one at a time
+- Unselect "auto pan" to keep the map from moving while selecting
+- Select "highlight on hover" to show geojson elements by hovering the mouse instead of clicking
+- Select "highlight row" to show all the geojson objects in a row, instead of just the selected column
 
 ### Animation
 
-   - Animation can be achieved by setting the _style associated with a column to 0.0, and setting the _hlstyle
+  - Animation can be achieved by setting the _style associated with a column to 0.0, and setting the _hlstyle
      associated with a column to something non-zero.  Then when scrolling through the rows of a dataset, only
      the currently highlighted row will be visible.
 
