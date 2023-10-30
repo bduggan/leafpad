@@ -79,6 +79,7 @@ and go to http://localhost:3000 and click on "demo"
     - Columns that look like geojson are rendered as geojson
     - Columns ending in _style or _pt_style are styles applied to the corresponding column
     - Columns ending in '_icon' are used as text for the icon of a corresponding column
+    - Columns ending in '_icon_class' are used for the class.  [xkcd color names](https://xkcd.com/color/rgb/) are included with the stylesheet.
     - Columns ending in _hlstyle are styles used when that layer is highlighted
     - Valid style options are can be found [here](https://leafletjs.com/reference.html#path-option)
 

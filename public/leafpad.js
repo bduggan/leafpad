@@ -21,6 +21,7 @@ let default_config = {
   initial_lat: 37.09,
   initial_lon: -96.70,
   hide_style_columns: true,
+  icon_class: 'icon-style bgcolor-pale-grey',
   column_links: {
     // my_column_name: (v) => `https://google.com?q=${ v }`
   },
@@ -129,6 +130,7 @@ function map_dataset(dataset) {
      let hl_style = try_parse( row[`${ucol}_HLSTYLE`] || row[`${lcol}_hlstyle`] ) || config('hl_style')
      let point_style = try_parse( row[`${ucol}_PT_STYLE`] || row[`${lcol}_pt_style`] ) || config('pt_style') || layer_style
      let icon = row[`${ucol}_ICON`] || row[`${lcol}_icon`] || config('default_icon')
+     let icon_class = row[`${ucol}_ICON_CLASS`] || row[`${lcol}_icon_class`] || config('icon_class')
      let geolayer = L.geoJSON(geom,
             {
               style: function(feature) {
@@ -137,7 +139,8 @@ function map_dataset(dataset) {
               },
               pointToLayer:
                  icon
-                 ? function (f,latlng) { return L.marker( latlng, { icon: L.divIcon({ className: 'icon-style', html: icon, iconSize: 'auto', }) }) }
+                 ? function (f,latlng) { return L.marker( latlng, {
+                    icon: L.divIcon({ className: icon_class, html: icon, iconSize: 'auto', }) }) }
                  : function (f,latlng) { return L.circleMarker(latlng,point_style) }
            }
      )
