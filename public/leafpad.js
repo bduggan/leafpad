@@ -21,7 +21,7 @@ let default_config = {
   initial_lat: 37.09,
   initial_lon: -96.70,
   hide_style_columns: true,
-  icon_class: 'icon-style bgcolor-pale-grey',
+  icon_class: 'see-through icon-style-zoomable',
   column_links: {
     // my_column_name: (v) => `https://google.com?q=${ v }`
   },
@@ -640,6 +640,11 @@ function main() {
   show_tab( datasets[0].queryName )
   map.addEventListener('mousemove', mouselistener)
   map.addEventListener('click', clicklistener)
+  document.body.className = "zoom"+map.getZoom();
+  map.on('zoomend', function(event) {
+    console.log('changing class to zoom'+map.getZoom());
+    document.body.className = "zoom"+map.getZoom();
+  });
 }
 
 main()

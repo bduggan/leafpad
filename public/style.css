@@ -202,44 +202,46 @@ a.refresh_button {
   height: auto;
 }
 
-.icon-style {
+.zoom22 .icon-style-zoomable,
+.zoom21 .icon-style-zoomable,
+.zoom20 .icon-style-zoomable,
+.zoom19 .icon-style-zoomable,
+.zoom18 .icon-style-zoomable,
+.zoom17 .icon-style-zoomable,
+.zoom16 .icon-style-zoomable,
+.zoom15 .icon-style-zoomable,
+.zoom14 .icon-style-zoomable
+ {
   font-size:10pt;
   border: 1px solid #888;
   padding: 3px;
   margin: 3px;
   box-shadow: 1px 2px 4px rgba(0,0,0,0.7);
-  opacity: 0.75;
   color: black;
   border-radius: 3px;
   width: auto;
   height: auto;
 }
 
-.icon-style-large {
-  font-size:15pt;
-  border: 1px solid #888;
-  padding: 3px;
-  margin: 3px;
-  box-shadow: 1px 2px 4px rgba(0,0,0,0.7);
-  background-color:rgba(255,255,255,0.8);
-  color: black;
-  border-radius: 3px;
-  width: auto;
-  height: auto;
+.see-through { background-color: rgba(255,255,255,0.8); }
+.zoom13, .zoom12, .zoom11, .zoom10, .zoom9, .zoom8,
+.zoom7, .zoom6, .zoom5, .zoom4, .zoom3, .zoom2, .zoom1 {
+  & .see-through { background-color: rgba(255,255,255,0.0); }
 }
 
-.icon-style-xlarge {
-  font-size:20pt;
-  border: 1px solid #888;
-  padding: 3px;
-  margin: 3px;
-  box-shadow: 1px 2px 4px rgba(0,0,0,0.7);
-  background-color:rgba(255,255,255,0.8);
-  color: black;
-  border-radius: 3px;
-  width: auto;
-  height: auto;
-}
+.zoom13 .icon-style-zooomable { font-size: 1em; }
+.zoom12 .icon-style-zooomable { font-size: 0.5em; }
+.zoom11 .icon-style-zooomable { font-size: 0.25em; }
+.zoom10 .icon-style-zooomable { font-size: 0.125em; }
+.zoom9 .icon-style-zooomable { font-size: 0.0625em; }
+.zoom8 .icon-style-zooomable { font-size: 0.03125em; }
+.zoom7 .icon-style-zooomable { font-size: 0.015625em; }
+.zoom6 .icon-style-zooomable { font-size: 0.007813em; }
+.zoom5 .icon-style-zooomable { font-size: 0.003906em; }
+.zoom4 .icon-style-zooomable { font-size: 0.001953em; }
+.zoom3 .icon-style-zooomable { font-size: 0.000977em; }
+.zoom2 .icon-style-zooomable { font-size: 0.000488em; }
+.zoom1 .icon-style-zooomable { font-size: 0.000244em; }
 
 # https://xkcd.com/color/rgb/
 .bgcolor-cloudy-blue { background-color: #acc2d9; }
