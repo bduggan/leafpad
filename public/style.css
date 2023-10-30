@@ -198,7 +198,8 @@ a.refresh_button {
 }
 
 .icon-style-plain {
-
+  width: auto;
+  height: auto;
 }
 
 .icon-style {
@@ -210,6 +211,8 @@ a.refresh_button {
   opacity: 0.75;
   color: black;
   border-radius: 3px;
+  width: auto;
+  height: auto;
 }
 
 .icon-style-large {
@@ -221,6 +224,8 @@ a.refresh_button {
   background-color:rgba(255,255,255,0.8);
   color: black;
   border-radius: 3px;
+  width: auto;
+  height: auto;
 }
 
 .icon-style-xlarge {
@@ -232,6 +237,8 @@ a.refresh_button {
   background-color:rgba(255,255,255,0.8);
   color: black;
   border-radius: 3px;
+  width: auto;
+  height: auto;
 }
 
 # https://xkcd.com/color/rgb/
