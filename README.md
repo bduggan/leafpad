@@ -112,11 +112,6 @@ and go to http://localhost:3000 and click on "demo"
     ...etc
   }
   ```
-- Alternatively `leafpad_config` can be set in localStorage, like so:
-
-  ```
-  localStorage.setItem('leafpad_config', JSON.stringify({tile_provider: 'USGS.USTopo'}))
-  ```
 
 Valid configuration settings are:
 

@@ -1,15 +1,6 @@
 
 if (typeof(leafpad_config) == 'undefined') {
   console.log('no configuration found, using defaults')
-  let stored = window.localStorage.getItem('leafpad_config')
-  if (stored) {
-    console.log('found stored config', stored)
-    try {
-      leafpad_config = JSON.parse(stored)
-    } catch {
-      console.log('could not parse config')
-    }
-  }
 } else {
   console.log('found configuration', leafpad_config)
 }
@@ -57,8 +48,11 @@ function config(key) {
   if ( (key in leafpad_config) && (typeof(leafpad_config[key]) != 'object') ) {
     return leafpad_config[key]
   }
-  if (key in leafpad_config && typeof(default_config[key]) === 'object') {
-    return Object.assign( default_config[key], leafpad_config[key] )
+  if (key in leafpad_config) {
+    if (typeof(default_config[key]) === 'object') {
+      return Object.assign( default_config[key], leafpad_config[key] )
+    }
+    return leafpad_config[key]
   }
   return default_config[key]
 }
@@ -89,6 +83,8 @@ function show_link() {
 }
 
 const is_geo_col = (name) => name.toLowerCase().endsWith('geojson')
+const is_latlon_col = (name) => name.toLowerCase() == 'lat'
+const lon_column = (name) => name == 'lat' ? 'lon' : name == 'LAT' ? 'LON' : 'xxx'
 const is_style_col = (name) => name.toLowerCase().endsWith('_style') || name.toLowerCase().endsWith('_hlstyle')
 const looks_like_geo_data = (d) => typeof(d) == "string" && d.startsWith('{') && d.indexOf('"coordinates"') > 0 && d.indexOf('"type"') > 0
 
@@ -116,10 +112,15 @@ function map_dataset(dataset) {
    all_layers[dataset.queryName][row_number] = {}
    for (let col_spec of dataset.columns) {
      let col = col_spec.name
-     if (!is_geo_col(col) && !looks_like_geo_data(row[col])) continue;
+     if (!is_geo_col(col) && !is_latlon_col(col) && !looks_like_geo_data(row[col])) continue;
      let geom = null
+     let col_data = row[col]
+     if (is_latlon_col(col)) {
+       let lon_data = row[lon_column(col)]
+       col_data = '{ "type": "Point", "coordinates": [' + `${lon_data},${row[col]}` + '] }'
+     }
      try {
-       geom = JSON.parse(row[col])
+       geom = JSON.parse(col_data)
      } catch(e) {
        console.log("error parsing geojson", e)
        continue
@@ -316,7 +317,7 @@ const csvlistener = (e) => {
   } else {
     highlight_layers([ layer ])
   }
-  if (layer.query_name != timeline_dataset.queryName) {
+  if (timeline_dataset && layer.query_name != timeline_dataset.queryName) {
     console.log('not in right layer')
     let nxt = datasets.filter( (l) => l.queryName == query_name )[0]
     if (nxt) {
@@ -340,7 +341,7 @@ function set_slider(n) {
 function show_tab(query_name) {
   let table_to_show = `table_${query_name}`
   let tab_to_show   = `tab_${query_name}`
-  if (timeline_dataset.queryName != query_name) {
+  if (timeline_dataset && timeline_dataset.queryName != query_name) {
     let nxt = datasets.filter( (l) => l.queryName == query_name )[0]
     set_slider_dataset(nxt)
   }
@@ -596,6 +597,63 @@ function show_dataset(table, d) {
   }
 }
 
+// credit: Trevor Dixon.
+// https://stackoverflow.com/questions/1293147/how-to-parse-csv-data
+
+function parse_csv(str) {
+      var arr = [];
+      var quote = false;
+      for (var row = col = c = 0; c < str.length; c++) {
+                var cc = str[c], nc = str[c+1];
+                arr[row] = arr[row] || [];
+                arr[row][col] = arr[row][col] || '';
+                if (cc == '"' && quote && nc == '"') {
+                  arr[row][col] += cc; ++c; continue;
+                }
+                if (cc == '"') { quote = !quote; continue; }
+                if (cc == ',' && !quote) { ++col; continue; }
+                if (cc == '\n' && !quote) { ++row; col = 0; continue; }
+                arr[row][col] += cc;
+            }
+      return arr;
+}
+
+async function load_csv(name, url) {
+  let res = await fetch(url);
+  let body = await res.text();
+  let parsed = parse_csv(body)
+  let hdr = parsed.shift()
+  let rows = []
+  for (let r of parsed) {
+    let h = {}
+    for (let c of hdr) {
+      h[c] = r.shift()
+    }
+    rows.push(h)
+  }
+  let columns = hdr.map( (name) => { return { name } } )
+  return {
+    queryName: name,
+    content: rows,
+    columns: columns,
+    count: parsed.length
+  }
+}
+
+async function load_datasets(datasources) {
+  let ds = datasources;
+  if (!ds) {
+    console.log('error! no data sources');
+    return;
+  }
+  let loaded = []
+  for (let d of ds) {
+    let new_ds = await load_csv(d.name, d.url)
+    loaded.push( new_ds )
+  }
+  window.datasets = loaded;
+}
+
 function setup_data(panels) {
   let csv_data = panels.appendChild(elt('div',{id: 'csv_data'}))
   let tabs = csv_data.appendChild(div({id:'tabs'}))
@@ -625,27 +683,59 @@ console.log('leafpad loading.');
 
 var loaded = false;
 
-function main() {
+// query parameters:
+//  gist_url: use this url for a gist to load
+//            example: https://gist.github.com/bduggan/f12bc788849cf465b9fe3ea63640ed37
+//  conf_url: use this url for a config file to load (optionally has a specific SHA for a version)
+//            example: https://gist.githubusercontent.com/bduggan/f12bc788849cf465b9fe3ea63640ed37/raw/a28cc658c9b9a7ee96752c9a108d6010d3053ac4/00-leafpad.json
+//  conf_path: use this path in the gist for a config file to load.  default is 'leafpad.json'
+//             example: 00-leafpad.json
+
+async function load_config() {
+  let q = new URLSearchParams(location.search);
+  let gist_url = q.get('gist');
+  if (!gist_url) return;
+  let parts = gist_url.split('/');
+  let user = parts[parts.length - 2];
+  let sha = parts[parts.length - 1];
+
+  let conf_url = q.get('conf_url');
+  if (!conf_url) {
+    let conf_path = q.get('conf_path') || '00-leafpad.json'
+    conf_url = `https://gist.githubusercontent.com/${user}/${sha}/raw/${conf_path}`
+  }
+
+  console.log(`fetching config from ${conf_url}`)
+  let res = await fetch(conf_url)
+  let conf = await res.json();
+  leafpad_config = conf;
+  for (let d of leafpad_config.datasources) {
+      d.url ||= `https://gist.githubusercontent.com/${user}/${sha}/raw/${d.name}.csv`
+   }
+  return leafpad_config.datasources;
+}
+
+async function main() {
   if (loaded) {
     console.log('data already loaded');
     return;
   }
   loaded = true;
+  let datasources = await load_config();
+  if (datasources) await load_datasets(datasources);
   let panels = setup_panels()
   setup_map()
   setup_data(panels)
-  document.addEventListener('keydown', keylistener)
   document.getElementById('csv_data').addEventListener('click', csvlistener)
   document.getElementById('tabs').addEventListener('click', tablistener)
   show_tab( datasets[0].queryName )
   map.addEventListener('mousemove', mouselistener)
   map.addEventListener('click', clicklistener)
-  document.body.className = "zoom"+map.getZoom();
   map.on('zoomend', function(event) {
-    console.log('changing class to zoom'+map.getZoom());
     document.body.className = "zoom"+map.getZoom();
   });
+  document.body.className = "zoom"+map.getZoom();
+  document.addEventListener('keydown', keylistener)
 }
 
-main()
-console.log('leafpad loaded.');
+main().then(() => { console.log('leafpad loaded.'); })

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" >
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <center id='gist_title'>leafpad from gist</center>
+    <div id="leafpad"></div>
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-providers@1.13.0/leaflet-providers.js"></script>
+    <script>
+       let q = new URLSearchParams(location.search);
+       if (!q.has('gist')) {
+         document.clear();
+         document.write('<form action="gist.html" method="get">');
+         document.write('<input type="text" name="gist" placeholder="gist url">');
+         document.write('<input type="submit" value="load">');
+         window.stop();
+       }
+       let gist = encodeURI(q.get('gist'));
+       document.getElementById('gist_title').innerHTML = `<a href=${gist}>${gist}</a>`;
+
+    </script>
+    <script src='leafpad.js'></script>
+  </body>
+</html>
+
+
