@@ -83,8 +83,14 @@ function show_link() {
 }
 
 const is_geo_col = (name) => name.toLowerCase().endsWith('geojson')
-const is_latlon_col = (name) => name.toLowerCase() == 'lat'
-const lon_column = (name) => name == 'lat' ? 'lon' : name == 'LAT' ? 'LON' : 'xxx'
+const is_lat_col = (name) => name.match(/_?lat(itude)?$/i) ? true : false
+
+var lat2lon = { 'lat': 'lon', 'latitude' : 'longitude', 'LAT': 'LON', 'LATITUDE': 'LONGITUDE' }
+
+const lon_column = (name) => name.replace(/(_?)(lat(itude)?)$/i, (str,dash,lat,itude) => `${dash}${lat2lon[lat]}` )
+// lat => longitude, foo_lat => 'foo_longitude'
+const style_prefix = (name) => name.replace(/_?(lat(itude)?)$/i, '')
+
 const is_style_col = (name) => name.toLowerCase().endsWith('_style') || name.toLowerCase().endsWith('_hlstyle')
 const looks_like_geo_data = (d) => typeof(d) == "string" && d.startsWith('{') && d.indexOf('"coordinates"') > 0 && d.indexOf('"type"') > 0
 
@@ -112,10 +118,10 @@ function map_dataset(dataset) {
    all_layers[dataset.queryName][row_number] = {}
    for (let col_spec of dataset.columns) {
      let col = col_spec.name
-     if (!is_geo_col(col) && !is_latlon_col(col) && !looks_like_geo_data(row[col])) continue;
+     if (!is_geo_col(col) && !is_lat_col(col) && !looks_like_geo_data(row[col])) continue;
      let geom = null
      let col_data = row[col]
-     if (is_latlon_col(col)) {
+     if (is_lat_col(col)) {
        let lon_data = row[lon_column(col)]
        col_data = '{ "type": "Point", "coordinates": [' + `${lon_data},${row[col]}` + '] }'
      }
@@ -127,6 +133,10 @@ function map_dataset(dataset) {
      }
      let ucol = col.toUpperCase()
      let lcol = col.toLowerCase()
+     if (is_lat_col(col)) {
+       ucol = style_prefix(col).toUpperCase()
+       lcol = style_prefix(col).toLowerCase()
+     }
      let layer_style = try_parse( row[`${ucol}_STYLE`] || row[`${lcol}_style`] ) || config('geostyle')
      let hl_style = try_parse( row[`${ucol}_HLSTYLE`] || row[`${lcol}_hlstyle`] ) || config('hl_style')
      let point_style = try_parse( row[`${ucol}_PT_STYLE`] || row[`${lcol}_pt_style`] ) || config('pt_style') || layer_style
