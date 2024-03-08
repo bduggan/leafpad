@@ -91,7 +91,7 @@ var lat2lon = { 'lat': 'lon', 'latitude' : 'longitude', 'LAT': 'LON', 'LATITUDE'
 const lon_column = (name) => name.replace(/(_?)(lat(itude)?)$/i, (str,dash,lat,itude) => `${dash}${lat2lon[lat]}` )
 // lat => longitude, foo_lat => 'foo_longitude'
 const style_prefix = (name) => name.replace(/_?(lat(itude)?)$/i, '')
-const is_style_col = (name) => name.match(/_((hl?)style|(fill_)?(color))$/i) ? true : false
+const is_style_col = (name) => (name.match(/_((hl?)style|(fill_)?(color))$/i) || name.match(/_icon(_class)?$/i)) ? true : false
 
 const looks_like_geo_data = (d) => typeof(d) == "string" && d.startsWith('{') && d.indexOf('"coordinates"') > 0 && d.indexOf('"type"') > 0
 
