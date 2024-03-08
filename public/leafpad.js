@@ -8,7 +8,7 @@ if (typeof(leafpad_config) == 'undefined') {
 let default_config = {
   tile_provider: 'CartoDB.Positron',
   initial_zoom: 5,
-  max_zoom: 20,
+  max_zoom: 25,
   initial_lat: 37.09,
   initial_lon: -96.70,
   hide_style_columns: true,
@@ -197,7 +197,7 @@ function setup_map() {
   map = L.map('map', {minZoom: 0, maxZoom: config('max_zoom') }).setView([lat,lon], zoom );
   map.doubleClickZoom.disable();
   let provider = config('tile_provider')
-  L.tileLayer.provider(provider).addTo(map);
+  L.tileLayer.provider(provider, { maxZoom: config('max_zoom') }).addTo(map);
   L.control.scale().addTo(map);
 
   for (let dataset of datasets) {
