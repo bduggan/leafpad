@@ -9,6 +9,7 @@ let default_config = {
   tile_provider: 'CartoDB.Positron',
   initial_zoom: 5,
   max_zoom: 25,
+  fly_zoom: 18,
   initial_lat: 37.09,
   initial_lon: -96.70,
   hide_style_columns: true,
@@ -90,14 +91,14 @@ var lat2lon = { 'lat': 'lon', 'latitude' : 'longitude', 'LAT': 'LON', 'LATITUDE'
 const lon_column = (name) => name.replace(/(_?)(lat(itude)?)$/i, (str,dash,lat,itude) => `${dash}${lat2lon[lat]}` )
 // lat => longitude, foo_lat => 'foo_longitude'
 const style_prefix = (name) => name.replace(/_?(lat(itude)?)$/i, '')
-const is_style_col = (name) => name.match(/_(hl?)style$/i) ? true : false
+const is_style_col = (name) => name.match(/_((hl?)style|(fill_)?(color))$/i) ? true : false
 
 const looks_like_geo_data = (d) => typeof(d) == "string" && d.startsWith('{') && d.indexOf('"coordinates"') > 0 && d.indexOf('"type"') > 0
 
 function highlight_layers(layers) {
   if (highlighted_layers) highlighted_layers.map( l => l.resetStyle() )
   highlighted_layers = layers
-  layers.map( l => l.setStyle(l.hl_style) )
+  layers.map( l => l.setStyle(l.hl_style || config('hl_style')) )
   layers.map( l => l.bringToFront() )
 }
 
@@ -335,7 +336,7 @@ const csvlistener = (e) => {
   if (!layer) {
     return
   }
-  if (pan_ok) map.flyToBounds(layer, { maxZoom: config('max_zoom') })
+  if (pan_ok) map.flyToBounds(layer, { maxZoom: config('fly_zoom') })
   highlight_csv_cell(cell)
   if (hl_row) {
     highlight_layers(Object.values( all_layers[query_name][data.row_number] ))
@@ -453,7 +454,7 @@ function slider_changed_to(n) {
   if (pan_ok) map.panInsideBounds(layer.getBounds())
   let geodata = timeline_dataset.content[n][timeline_geojson_column]
   if (pan_ok && geodata.indexOf('"Point"') == -1) {
-    map.fitBounds(layer.getBounds(), { maxZoom: config('max_zoom') })
+    map.fitBounds(layer.getBounds(), { maxZoom: config('fly_zoom') })
   }
 }
 
