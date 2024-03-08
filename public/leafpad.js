@@ -12,6 +12,7 @@ let default_config = {
   fly_zoom: 18,
   initial_lat: 37.09,
   initial_lon: -96.70,
+  initial_auto: true,
   hide_style_columns: true,
   icon_class: 'see-through icon-style-zoomable',
   column_links: {
@@ -59,6 +60,7 @@ function config(key) {
 }
 
 var all_layers = {}
+var first_layer;
 var map;
 var highlighted_layers = [];
 var timeline_dataset = null;
@@ -171,6 +173,7 @@ function map_dataset(dataset) {
                  : function (f,latlng) { return L.circleMarker(latlng,point_style) }
            }
      )
+     if (!first_layer) first_layer = geolayer;
 
      geolayer.on('mouseover', function() {
         if (hl_hover) {
@@ -762,6 +765,9 @@ async function main() {
   });
   document.body.className = "zoom"+map.getZoom();
   document.addEventListener('keydown', keylistener)
+  if (config('initial_auto')) {
+    map.fitBounds(first_layer.getBounds(), { maxZoom: config('fly_zoom') - 1 })
+  }
 }
 
 main().then(() => { console.log('leafpad loaded.'); })
