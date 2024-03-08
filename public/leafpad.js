@@ -90,8 +90,8 @@ var lat2lon = { 'lat': 'lon', 'latitude' : 'longitude', 'LAT': 'LON', 'LATITUDE'
 const lon_column = (name) => name.replace(/(_?)(lat(itude)?)$/i, (str,dash,lat,itude) => `${dash}${lat2lon[lat]}` )
 // lat => longitude, foo_lat => 'foo_longitude'
 const style_prefix = (name) => name.replace(/_?(lat(itude)?)$/i, '')
+const is_style_col = (name) => name.match(/_(hl?)style$/i) ? true : false
 
-const is_style_col = (name) => name.toLowerCase().endsWith('_style') || name.toLowerCase().endsWith('_hlstyle')
 const looks_like_geo_data = (d) => typeof(d) == "string" && d.startsWith('{') && d.indexOf('"coordinates"') > 0 && d.indexOf('"type"') > 0
 
 function highlight_layers(layers) {
@@ -110,6 +110,14 @@ function try_parse(maybe_json) {
     console.log(`could not parse json: ${err.message}`, maybe_json)
   }
   return parsed
+}
+
+function find_col(row,lcol,suffix) {
+  if (row[`${lcol}_${suffix}`]) return row[`${lcol}_${suffix}`]
+  let ucol = lcol.toUpperCase()
+  let usuffix = suffix.toUpperCase()
+  if (row[`${ucol}_${usuffix}`]) return row[`${ucol}_${usuffix}`]
+  return null
 }
 
 function map_dataset(dataset) {
@@ -142,6 +150,13 @@ function map_dataset(dataset) {
      let point_style = try_parse( row[`${ucol}_PT_STYLE`] || row[`${lcol}_pt_style`] ) || config('pt_style') || layer_style
      let icon = row[`${ucol}_ICON`] || row[`${lcol}_icon`] || config('default_icon')
      let icon_class = row[`${ucol}_ICON_CLASS`] || row[`${lcol}_icon_class`] || config('icon_class')
+
+     let fill_color = find_col(row,lcol,'fill_color')
+     if (fill_color) { point_style['fillColor'] = fill_color; layer_style = fill_color }
+
+     let color = find_col(row,lcol,'color')
+     if (color) { point_style['color'] = color; layer_style = color }
+
      let geolayer = L.geoJSON(geom,
             {
               style: function(feature) {
