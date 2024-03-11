@@ -73,6 +73,10 @@ var dt_show = true;
 var select_point = false;
 var mapdiv;
 
+async function map_fullscreen() {
+  mapdiv.requestFullscreen()
+}
+
 function make_link() {
   let base = `${location.origin}${location.pathname}`
   let latlng = map.getCenter()
@@ -492,7 +496,7 @@ function setup_panels() {
   let header = main.appendChild( div( { class: 'header' } ) )
   header.appendChild( elt('span', {}, 'leafpad ' ) )
   header.appendChild( elt('span', {},
-    elt('button',{ id: 'fullscreen', onclick: "mapdiv.requestFullscreen()", class: 'fullscreen_button' }, "「」full screen" )))
+    elt('button',{ id: 'fullscreen', onclick: "map_fullscreen()", class: 'fullscreen_button' }, "「」full screen" )))
   header.appendChild( txt( { id: 'current_link' }, '' ) )
   let pos = elt( 'div', {class: 'current_pos', title: 'lat,lon', alt: 'lat,lon'},
       elt('span',{id:'lat'}),
