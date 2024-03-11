@@ -158,6 +158,18 @@ input#timeline {
   grid-template-columns: 50px 1fr;
   margin-top: 2px;
 }
+.fullscreen_button {
+  padding: 2px;
+  background-color: #87ae73;
+  box-shadow: 2px 2px 2px #777;
+  border-radius: 0px;
+  margin-right: 5px;
+  border: 1px solid black;
+}.fullscreen_button:hover {
+  background-color: #a7ce93;
+}
+
+
 .update_button {
   padding: 5px;
   background-color: #d2bd0a;
@@ -1193,3 +1205,4 @@ a.refresh_button {
 .bgcolor-blue { background-color: #0343df; }
 .bgcolor-green { background-color: #15b01a; }
 .bgcolor-purple { background-color: #7e1e9c; }
+

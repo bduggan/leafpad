@@ -71,6 +71,7 @@ var hl_row = false;
 var hl_hover = false;
 var dt_show = true;
 var select_point = false;
+var mapdiv;
 
 function make_link() {
   let base = `${location.origin}${location.pathname}`
@@ -489,7 +490,9 @@ function setup_panels() {
     return
   }
   let header = main.appendChild( div( { class: 'header' } ) )
-  header.appendChild( txt( {}, 'leafpad' ) )
+  header.appendChild( elt('span', {}, 'leafpad ' ) )
+  header.appendChild( elt('span', {},
+    elt('button',{ id: 'fullscreen', onclick: "mapdiv.requestFullscreen()", class: 'fullscreen_button' }, "「」full screen" )))
   header.appendChild( txt( { id: 'current_link' }, '' ) )
   let pos = elt( 'div', {class: 'current_pos', title: 'lat,lon', alt: 'lat,lon'},
       elt('span',{id:'lat'}),
@@ -501,7 +504,7 @@ function setup_panels() {
   header.appendChild(pos)
   main.appendChild( header )
   let panels = main.appendChild(div({ class: 'panels' }))
-  let mapdiv = panels.appendChild(div({ id: 'map' }))
+  mapdiv = panels.appendChild(div({ id: 'map' }))
   let controls = panels.appendChild(div({ class: 'controls' }))
   let sliderdiv = controls.appendChild(elt( 'div', { class: 'sliderdiv' } ) )
   let autoplay = sliderdiv.appendChild(elt(
