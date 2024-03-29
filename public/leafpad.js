@@ -8,8 +8,8 @@ if (typeof(leafpad_config) == 'undefined') {
 let default_config = {
   tile_provider: 'CartoDB.Positron',
   initial_zoom: 5,
-  max_zoom: 25,
-  fly_zoom: 18,
+  max_zoom: 20,
+  fly_zoom: 14,
   initial_lat: 37.09,
   initial_lon: -96.70,
   initial_auto: true,
