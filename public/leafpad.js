@@ -282,7 +282,7 @@ async function update_dataset(query_name) {
   let body = JSON.stringify({
       lat: selected_latlon[0],
       lon: selected_latlon[1],
-      project: location.pathname.split('/').slice(-1)[0],
+      project: window.project || location.pathname.split('/').slice(-1)[0],
       bounds: map.getBounds().toBBoxString(),
       dataset: query_name
     })

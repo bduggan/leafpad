@@ -99,6 +99,13 @@ get '/' => { layout => 'bare' } => sub($c) {
 get '/show/csv/*name' => sub($c) {
   $c->set_defaults;
   my $name = $c->stash('name');
+  my $project;
+  if ($name =~ m{^([^/]+)/(.*)$}) {
+    $project = $1;
+  } else {
+    $project = $name;
+  }
+  $c->stash('project' => $project);
   my $io   = $data_dir->child("$name");
   if (-d $io) {
     $c->stash(geofiles =>

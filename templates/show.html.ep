@@ -1,6 +1,10 @@
 % use Mojo::Collection qw/c/;
 % title 'leafpad';
 
+<script>
+window.project = '<%= stash 'project' =%>';
+</script>
+
 <h3>
 %= link_to 'leafpad' => 'index'
 % my $parts = $geofiles->[0]->rel_path->to_array;

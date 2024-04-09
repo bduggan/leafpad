@@ -21,7 +21,7 @@ var datasets = [];
        count: <%= +@{ $d->geodata || [] } %>,
        csv: "<%= url_for('csv', proj => $proj, name => $d->name)->to_abs %>",
        oversized: false,
-       can_update: <%= update_handler($proj, $d->name) ? 'true' : 'false' %>,
+       can_update: <%= update_handler($proj, $d->name) ? 'true' : 'false' %>
        } )
   }
 % }
