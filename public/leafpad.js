@@ -279,11 +279,14 @@ async function update_dataset(query_name) {
   if (!selected_latlon) {
     selected_latlon = [ document.getElementById('lat').innerHTML, document.getElementById('lon').innerHTML ]
   }
+  let q = new URLSearchParams(location.search)
+  let p = Object.fromEntries(q.entries())
   let body = JSON.stringify({
       lat: selected_latlon[0],
       lon: selected_latlon[1],
       project: window.project || location.pathname.split('/').slice(-1)[0],
       bounds: map.getBounds().toBBoxString(),
+      params: JSON.stringify(p),
       dataset: query_name
     })
   pre.innerHTML += `-> sending: ${body}\n`

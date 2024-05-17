@@ -145,8 +145,9 @@ get 'csv/:proj/*name' => sub ($c) {
 
 post 'refresh' => sub ($c) {
   my $data = $c->req->json;
-  my ($lat,$lon,$project,$dataset) = @$data{qw/lat lon project dataset/};
+  my ($lat,$lon,$project,$dataset,$params) = @$data{qw/lat lon project dataset params/};
   $data->{output_to} = $data_dir->child($project)->child($dataset) . '.csv';
+  $data->{params} = $params;
   my $json = encode_json($data);
   # we expect the keys: lat, lon, project, dataset, bounds
   my $handler = $c->update_handler($project,$dataset) or
