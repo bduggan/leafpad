@@ -98,7 +98,7 @@ var lat2lon = { 'lat': 'lon', 'latitude' : 'longitude', 'LAT': 'LON', 'LATITUDE'
 const lon_column = (name) => name.replace(/(_?)(lat(itude)?)$/i, (str,dash,lat,itude) => `${dash}${lat2lon[lat]}` )
 // lat => longitude, foo_lat => 'foo_longitude'
 const style_prefix = (name) => name.replace(/_?(lat(itude)?)$/i, '')
-const is_style_col = (name) => (name.match(/_((hl)?style|(fill_)?(color))$/i) || name.match(/_icon(_class)?$/i)) ? true : false
+const is_style_col = (name) => (name.match(/_((hl)?style|(fill_)?(color))$/i) || name.match(/_icon(_class|_url)?$/i)) ? true : false
 
 const looks_like_geo_data = (d) => typeof(d) == "string" && d.startsWith('{') && d.indexOf('"coordinates"') > 0 && d.indexOf('"type"') > 0
 
@@ -158,6 +158,7 @@ function map_dataset(dataset) {
      let point_style = try_parse( row[`${ucol}_PT_STYLE`] || row[`${lcol}_pt_style`] ) || config('pt_style') || layer_style
      let icon = row[`${ucol}_ICON`] || row[`${lcol}_icon`] || config('default_icon')
      let icon_class = row[`${ucol}_ICON_CLASS`] || row[`${lcol}_icon_class`] || config('icon_class')
+     let icon_url = row[`${ucol}_ICON_URL`] || row[`${lcol}_icon_url`] || config('icon_url')
 
      let fill_color = find_col(row,lcol,'fill_color')
      if (fill_color) { point_style['fillColor'] = fill_color; layer_style = fill_color }
@@ -172,9 +173,12 @@ function map_dataset(dataset) {
                 return layer_style
               },
               pointToLayer:
-                 icon
-                 ? function (f,latlng) { return L.marker( latlng, {
-                    icon: L.divIcon({ className: icon_class, html: icon, iconSize: 'auto', }) }) }
+                 icon ? function (f,latlng) { return L.marker( latlng, {
+                          icon: L.divIcon({ className: icon_class, html: icon, iconSize: 'auto', }) }) 
+                        }
+                 : icon_url ? function (f,latlng) { return L.marker( latlng, {
+                   icon: L.icon({ iconUrl: icon_url, iconSize: [ 128, null] }) })
+                        } 
                  : function (f,latlng) { return L.circleMarker(latlng,point_style) }
            }
      )
