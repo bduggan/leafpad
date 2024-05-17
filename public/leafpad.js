@@ -305,6 +305,8 @@ async function update_dataset(query_name) {
 
   let l = make_link()
   cnt.append( elt('a', { href: l, class: 'refresh_button' }, "refresh page" ))
+  cnt.append( elt('hr', {  }, "" ))
+  cnt.scrollIntoView(false)
 }
 
 // events
@@ -779,7 +781,9 @@ async function main() {
   });
   document.body.className = "zoom"+map.getZoom();
   document.addEventListener('keydown', keylistener)
-  if (config('initial_auto')) {
+  let q = new URLSearchParams(location.search)
+  let p = Object.fromEntries(q.entries())
+  if (config('initial_auto') && !p.lat) {
     map.fitBounds(first_layer.getBounds(), { maxZoom: config('fly_zoom') - 1 })
   }
 }

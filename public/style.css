@@ -200,7 +200,7 @@ pre.updating {
   background-color:black;
   color:white;
   padding: 5px;
-  white-space: pre-wrap;
+  white-space: pre;
 }
 a.refresh_button {
   background-color: #aa23ff;
