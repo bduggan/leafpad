@@ -174,11 +174,11 @@ function map_dataset(dataset) {
               },
               pointToLayer:
                  icon ? function (f,latlng) { return L.marker( latlng, {
-                          icon: L.divIcon({ className: icon_class, html: icon, iconSize: 'auto', }) }) 
+                          icon: L.divIcon({ className: icon_class, html: icon, iconSize: 'auto', }) })
                         }
                  : icon_url ? function (f,latlng) { return L.marker( latlng, {
                    icon: L.icon({ iconUrl: icon_url, iconSize: [ 128, null] }) })
-                        } 
+                        }
                  : function (f,latlng) { return L.circleMarker(latlng,point_style) }
            }
      )
@@ -475,6 +475,31 @@ function slider_changed_to(n) {
   }
 }
 
+let countCoordinates = (geoJSON) => {
+  let count = 0;
+  let isArray = (arr) => Object.prototype.toString.call(arr) === '[object Array]';
+  let isCoordinatePair = (onePair) => isArray(onePair) && onePair.length == 2 && typeof onePair[0] === 'number' && typeof onePair[1] === 'number';
+
+  let counter = (obj) => {
+    if (isArray(obj)) {
+      if (isCoordinatePair(obj)) {
+        count++
+      } else {
+        obj.forEach(el => counter(el));
+      }
+    } else if (typeof obj === 'object') {
+      for (let k in obj) {
+        if (obj.hasOwnProperty(k)) {
+          counter(obj[k]);
+        }
+      }
+    }
+  }
+
+  counter(geoJSON);
+  return count;
+}
+
 function elt(type, attrs, ...children) {
   let node = document.createElement(type);
 
@@ -569,15 +594,7 @@ function describe_geodata(geo) {
   let desc = `${geom.type}`
   if (geom) {
     let c = geom.coordinates
-    if (is_coord(c)) {
-      desc += `(${c})`
-    } else if (c && is_coord(c[0])) {
-      desc += `, ${c.length} coordinates`
-    } else if (c && c[0] && is_coord(c[0][0])) {
-      desc += `, ${c[0].length} coordinates`
-    } else if (c && c[0] && c[0][0] ** is_coord(c[0][0])) { // multipolygon
-      desc += `, ${c[0][0].length} coordinates`
-    }
+    desc += ` (${countCoordinates(c)	} coordinates)`	
   } else {
     desc += `${j.type}`
   }
