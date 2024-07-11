@@ -1,10 +1,12 @@
 Choose a file:
 <br>
 
+<ol>
 % for my $csv ( $csv_files->each ) {
+  <li>
   %= link_to 'show', { name => $csv->basename('.csv') } => begin
   %= $csv->basename('.csv')
   %= end
   <i style='float:right;'><%= localtime($csv->stat->atime) %></i>
-  <br>
 % }
+</ol>
