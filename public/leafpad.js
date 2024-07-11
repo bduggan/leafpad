@@ -216,6 +216,11 @@ function map_dataset(dataset) {
  }
 }
 
+function is_bare() {
+  let q = new URLSearchParams(location.search)
+  return Object.fromEntries(q.entries()).bare ? true : false
+}
+
 function setup_map() {
   let q = new URLSearchParams(location.search)
   let params = Object.fromEntries(q.entries())
@@ -528,10 +533,12 @@ function setup_panels() {
     return
   }
   let header = main.appendChild( div( { class: 'header' } ) )
-  header.appendChild( elt('span', {}, 'leafpad ' ) )
-  header.appendChild( elt('span', {},
-    elt('button',{ id: 'fullscreen', onclick: "map_fullscreen()", class: 'fullscreen_button' }, "「」full screen" )))
-  header.appendChild( txt( { id: 'current_link' }, '' ) )
+  if (!is_bare()) {
+    header.appendChild( elt('span', {}, 'leafpad ' ) )
+    header.appendChild( elt('span', {},
+      elt('button',{ id: 'fullscreen', onclick: "map_fullscreen()", class: 'fullscreen_button' }, "「」full screen" )))
+    header.appendChild( txt( { id: 'current_link' }, '' ) )
+  }
   let pos = elt( 'div', {class: 'current_pos', title: 'lat,lon', alt: 'lat,lon'},
       elt('span',{id:'lat'}),
       ',',
@@ -543,29 +550,31 @@ function setup_panels() {
   main.appendChild( header )
   let panels = main.appendChild(div({ class: 'panels' }))
   mapdiv = panels.appendChild(div({ id: 'map' }))
-  let controls = panels.appendChild(div({ class: 'controls' }))
-  let sliderdiv = controls.appendChild(elt( 'div', { class: 'sliderdiv' } ) )
-  let autoplay = sliderdiv.appendChild(elt(
-    'button', { class: 'autoplay', id: 'autoplay' }, '⯈'
-  ))
-  autoplay.addEventListener('click', handle_autoplay )
-  let slider = sliderdiv.appendChild(elt(
-    'input', {type: "range", min: "0", max:"99", value:"0", class:"slider", id: "timeline"}
-  ))
-  slider.addEventListener('input',handle_slider)
-  mapdiv.appendChild(div({ id: 'details' }))
+  if (!is_bare()) {
+    let controls = panels.appendChild(div({ class: 'controls' }))
+    let sliderdiv = controls.appendChild(elt( 'div', { class: 'sliderdiv' } ) )
+    let autoplay = sliderdiv.appendChild(elt(
+      'button', { class: 'autoplay', id: 'autoplay' }, '⯈'
+    ))
+    autoplay.addEventListener('click', handle_autoplay )
+    let slider = sliderdiv.appendChild(elt(
+      'input', {type: "range", min: "0", max:"99", value:"0", class:"slider", id: "timeline"}
+    ))
+    slider.addEventListener('input',handle_slider)
+    mapdiv.appendChild(div({ id: 'details' }))
 
-  const add_box = (name, label, args, handler) => {
-    let box = elt('input', {type: "checkbox", name: "auto-pan", ...args })
-    controls.appendChild(box)
-    controls.appendChild(elt('label',{for: name}, label))
-    box.addEventListener('click', handler )
+    const add_box = (name, label, args, handler) => {
+      let box = elt('input', {type: "checkbox", name: "auto-pan", ...args })
+      controls.appendChild(box)
+      controls.appendChild(elt('label',{for: name}, label))
+      box.addEventListener('click', handler )
+    }
+    add_box('auto-pan', 'auto pan', {checked: true}, () => { pan_ok = !pan_ok } )
+    add_box('hl-row', 'highlight row', {}, () => { hl_row = !hl_row } )
+    add_box('hl-hover', 'highlight on hover', {}, () => { hl_hover = !hl_hover } )
+    add_box('dt-show', 'show details', {checked: true}, () => { dt_show = !dt_show } )
+    add_box('select-point', 'select point', {}, () => { select_point = !select_point } )
   }
-  add_box('auto-pan', 'auto pan', {checked: true}, () => { pan_ok = !pan_ok } )
-  add_box('hl-row', 'highlight row', {}, () => { hl_row = !hl_row } )
-  add_box('hl-hover', 'highlight on hover', {}, () => { hl_hover = !hl_hover } )
-  add_box('dt-show', 'show details', {checked: true}, () => { dt_show = !dt_show } )
-  add_box('select-point', 'select point', {}, () => { select_point = !select_point } )
 
   return panels
 }
@@ -787,10 +796,12 @@ async function main() {
   if (datasources) await load_datasets(datasources);
   let panels = setup_panels()
   setup_map()
-  setup_data(panels)
-  document.getElementById('csv_data').addEventListener('click', csvlistener)
-  document.getElementById('tabs').addEventListener('click', tablistener)
-  show_tab( datasets[0].queryName )
+  if (!is_bare()) {
+    setup_data(panels)
+    document.getElementById('csv_data').addEventListener('click', csvlistener)
+    document.getElementById('tabs').addEventListener('click', tablistener)
+    show_tab( datasets[0].queryName )
+  }
   map.addEventListener('mousemove', mouselistener)
   map.addEventListener('click', clicklistener)
   map.on('zoomend', function(event) {

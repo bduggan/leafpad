@@ -1,12 +1,55 @@
+
+<style>
+  #tooltip {
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px 3px rgba(0,0,0,0.4);
+  }
+  li a.preview {
+    display: block;
+  }
+  li a.preview:hover {
+    color: #75bbfd;
+    background-color: #f0f0f0;
+  }
+</style>
+
+<iframe id='tooltip' width=600 height=600 style='display:none; position:fixed; background-color:#5e819d; border:1px solid black; padding:1px;'></iframe>
+
 Choose a file:
 <br>
 
 <ol>
 % for my $csv ( $csv_files->each ) {
   <li>
-  %= link_to 'show', { name => $csv->basename('.csv') } => begin
+    %= link_to 'show', { name => $csv->basename('.csv')} , class => 'preview' => begin
   %= $csv->basename('.csv')
   %= end
   <i style='float:right;'><%= localtime($csv->stat->atime) %></i>
 % }
 </ol>
+
+%= javascript begin
+function showTooltip(e) {
+  var tooltip = document.getElementById('tooltip');
+  tooltip.style.display = 'block';
+  tooltip.style.left = (e.clientX + 300) + 'px';
+  tooltip.style.top = (
+  e.clientY > 300 ? 300 : e.clientY + 20
+  ) + 'px';
+  tooltip.src = e.target.href + '?bare=1';
+}
+
+function hideTooltip() {
+  var tooltip = document.getElementById('tooltip');
+  tooltip.style.display = 'none';
+}
+
+window.onload = function() {
+  var links = document.getElementsByClassName('preview');
+  console.log(`found ${links.length} links`);
+  for (let l of links) {
+    l.addEventListener('mouseover', showTooltip);
+    l.addEventListener('mouseout', hideTooltip);
+  }
+};
+%= end
