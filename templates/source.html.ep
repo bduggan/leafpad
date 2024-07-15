@@ -1,0 +1,12 @@
+<h1 class='source_label'>
+%= $filename
+</h1>
+
+% my $i = 1;
+<pre class='source_text'>
+% for my $line (split /\n/, $source_text) {
+<span class='line_number'><%= $i++ %></span><%= $line %>
+% }
+</pre>
+
+
