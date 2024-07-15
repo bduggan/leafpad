@@ -169,6 +169,28 @@ input#timeline {
   background-color: #a7ce93;
 }
 
+.source_label {
+  font-family: monospace;
+}
+
+pre.source_text {
+  background-color: black;
+  color: white;
+  padding: 3px;
+  font-family: monospace;
+  overflow: auto;
+}
+pre.source_text span {
+  overflow: auto;
+}
+span.line_number {
+  display: inline-block;
+  width: 30px;
+  background-color: black;
+  padding-right: 5px;
+  color: #ffff84;
+  text-align: right;
+}
 
 .update_button {
   padding: 5px;
@@ -233,6 +255,16 @@ a.refresh_button {
   border-radius: 3px;
   width: auto;
   height: auto;
+}
+
+.source {
+  background-color: #5a86ad;
+  color: white;
+  font-size: 80%;
+  float: right;
+  border: 1px solid #3a5f7f;
+  padding: 2px;
+  font-family: monospace;
 }
 
 .see-through { background-color: rgba(255,255,255,0.8); }

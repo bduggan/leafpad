@@ -25,6 +25,7 @@ app->defaults(zoom => $default_zoom, layout => 'default' );
 plugin Config => default => {
   local_update_handler => 'leafpad-update',
   global_update_handler => do { my $x = `which leafpad-update`; chomp $x; $x },
+  source_base => "$ENV{HOME}/sql",
   src_dir => $data_dir
 };
 
@@ -170,5 +171,19 @@ post 'refresh' => sub ($c) {
     $c->finish("errors: $err");
   });
 } => 'refresh';
+
+get 'source/:name' => sub ($c) {
+  my $name = $c->stash('name');
+  my $base = path($c->config->{source_base});
+  if (-e $base->child("$name.sql")  ) {
+    $c->stash( filename => "$name.sql" );
+    $c->render(source_text => $base->child("$name.sql")->slurp);
+  } elsif (-e $base->child("remote/$name.sql") ) {
+    $c->stash( filename => "remote/$name.sql" );
+    $c->render(source_text => $base->child("remote/$name.sql")->slurp);
+  } else {
+    $c->render(text => "file not found: $name");
+  }
+} => 'source';
 
 app->start;

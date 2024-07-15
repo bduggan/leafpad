@@ -9,8 +9,12 @@ window.project = '<%= stash 'project' =%>';
 %= link_to 'leafpad' => 'index'
 % my $parts = $geofiles->[0]->rel_path->to_array;
 :
+% my $name = $parts->[0];
 % if (@$parts > 1 ) {
-  %= link_to "$parts->[0]", url_for('show', name => $parts->[0])->query(url_with->query)
+  %= link_to "$name", url_for('show', name => $name)->query(url_with->query)
 % }
+%= link_to url_for('source', name => $name) => class => 'source', target => '_blank' => begin
+source
+%= end
 </h3>
 <div id='leafpad'></div>
