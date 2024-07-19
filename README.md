@@ -128,9 +128,11 @@ See [leafpad.js](public/leafpad.js) for examples.
 
 ### Compatibility
 
-Leafpad is compatible with _mode analytics_.
+#### Mode Analytics
 
-To use the javascript in mode analytics, include the following in your HTML:
+Leafpad is compatible with [mode](https://mode.com/).
+
+To use the javascript from within mode, include the following in your HTML:
 
 ```
 <div id="leafpad"></div>
@@ -140,4 +142,18 @@ To use the javascript in mode analytics, include the following in your HTML:
 <script src="https://unpkg.com/leaflet-providers@1.13.0/leaflet-providers.js"></script>
 <script src="https://bduggan.github.io/leafpad/public/leafpad.js"></script>
 ```
+
+#### Gists
+
+Leafpad can run serverlessly by pulling content from a gist, and rendering it using static HTML, such as github pages.
+
+Here is an example of a gist with data:
+
+    https://gist.github.com/bduggan/f12bc788849cf465b9fe3ea63640ed37
+
+This can be rendered by placing the url here:
+
+    https://bduggan.github.io/leafpad/public/gist.html
+
+like [this](https://bduggan.github.io/leafpad/public/gist.html?gist=https%3A%2F%2Fgist.github.com%2Fbduggan%2Ff12bc788849cf465b9fe3ea63640ed37).
 
