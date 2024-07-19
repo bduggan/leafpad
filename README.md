@@ -149,11 +149,11 @@ Leafpad can run serverlessly by pulling content from a gist, and rendering it us
 
 Here is an example of a gist with data:
 
-    https://gist.github.com/bduggan/f12bc788849cf465b9fe3ea63640ed37
+  https://gist.github.com/bduggan/f12bc788849cf465b9fe3ea63640ed37
 
 This can be rendered by placing the url here:
 
-    https://bduggan.github.io/leafpad/public/gist.html
+  https://bduggan.github.io/leafpad/public/gist.html
 
 like [this](https://bduggan.github.io/leafpad/public/gist.html?gist=https%3A%2F%2Fgist.github.com%2Fbduggan%2Ff12bc788849cf465b9fe3ea63640ed37).
 
