@@ -32,10 +32,8 @@ Choose a file:
 function showTooltip(e) {
   var tooltip = document.getElementById('tooltip');
   tooltip.style.display = 'block';
-  tooltip.style.left = (e.clientX + 300) + 'px';
-  tooltip.style.top = (
-  e.clientY > 300 ? 300 : e.clientY + 20
-  ) + 'px';
+  tooltip.style.left = '300px';
+  tooltip.style.top = ( e.clientY > 300 ? 300 : e.clientY + 20) + 'px';
   tooltip.src = e.target.href + '?bare=1';
 }
 
