@@ -6,7 +6,8 @@ window.project = '<%= stash 'project' =%>';
 </script>
 
 <h3>
-%= link_to 'leafpad' => 'index'
+%= link_to 'leafpad' => 'index' => 'class' => 'brat'
+%= link_to 'gl' => url_for->query([gl => 1]) => 'class' => 'brat', id => 'gl_link'
 % my $parts = $geofiles->[0]->rel_path->to_array;
 :
 % my $name = $parts->[0];
@@ -18,3 +19,19 @@ source
 %= end
 </h3>
 <div id='leafpad'></div>
+%= javascript begin
+  function update_gl_link(event) {
+    event.preventDefault();
+    let base = `${location.origin}${location.pathname}`
+    let latlng = map.getCenter()
+    let q = new URLSearchParams(location.search)
+    let params = Object.fromEntries(q.entries())
+     const rnd = s => String(s).substr(0,8)
+     // https://xkcd.com/2170/
+     // "You're pointing to a specific person in a room, but since you didn't include
+     // datum information, we can't tell who it is"
+    let target = `${base}?lat=${rnd(latlng.lat)}&lon=${rnd(latlng.lng)}&zoom=${map.getZoom()}&gl=1`
+    window.open(target)
+  }
+  document.getElementById('gl_link').addEventListener('click', update_gl_link )
+%= end

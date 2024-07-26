@@ -114,6 +114,10 @@ get '/show/csv/*name' => sub($c) {
   } else {
     $c->stash(geofiles => [Geofile->ingest("$io.csv")]);
   }
+  if ($c->param('gl')) {
+    $c->stash(layout => 'gl');
+    return $c->render(template => 'showgl');
+  }
   $c->render(template => 'show');
 } => 'show';
 

@@ -5,7 +5,7 @@
 % my $i = 1;
 <pre class='source_text'>
 % for my $line (split /\n/, $source_text) {
-<span class='line_number'><%= $i++ %></span><%= $line %>
+<span class='line_number'><%= $i++ %></span><%= b($line)->decode %>
 % }
 </pre>
 

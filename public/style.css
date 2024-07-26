@@ -236,6 +236,33 @@ a.refresh_button {
   height: auto;
 }
 
+div#row_info {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow-x: scroll;
+  border: 1px solid #ddd;
+  padding: 10px;
+  background-color:#8ACE00;
+}
+
+div#row_info:empty {
+  display: none;
+}
+
+div#row_info_props {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow-x: scroll;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 80%;
+}
+
+div#row_info_props:empty {
+  display: none;
+}
+
+
 .zoom22 .icon-style-zoomable,
 .zoom21 .icon-style-zoomable,
 .zoom20 .icon-style-zoomable,
@@ -262,6 +289,14 @@ a.refresh_button {
   color: white;
   font-size: 80%;
   float: right;
+  border: 1px solid #3a5f7f;
+  padding: 2px;
+  font-family: monospace;
+}
+.brat {
+  background-color: #8ACE00;
+  color: black;
+  font-size: 80%;
   border: 1px solid #3a5f7f;
   padding: 2px;
   font-family: monospace;

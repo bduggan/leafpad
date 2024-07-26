@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/deck.gl@latest/dist.min.js"></script>
+  <script src="https://unpkg.com/turf@3.0.14/turf.min.js"></script>
+  <script src="https://unpkg.com/maplibre-gl@3.0.0/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@3.0.0/dist/maplibre-gl.css" rel="stylesheet" />
+  %= stylesheet '/style.css'
+  %= javascript "/datasets/$name/data.js"
+</head>
+<title><%= title %></title></head>
+  <body><%= content %>
+  %= javascript '/leafpad-gl.js'
+  </body>
+</html>
