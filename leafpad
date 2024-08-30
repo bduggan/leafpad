@@ -58,7 +58,16 @@ package Geofile {
     path($self->filename)->basename('.csv');
   }
 
+  sub ingest_geojson($self, $name) {
+    my $data = path($name)->slurp;
+    my $colname = path($name)->basename('.geojson');
+    $self->new(header => [$colname], geodata => [ { $colname => $data } ], filename => $name, rel_path => path($name)->to_rel($data_dir));
+  }
+
   sub ingest($self, $name) {
+    if ($name =~ /\.geojson$/) {
+      return Geofile->ingest_geojson($name);
+    }
     my ($header, $data) = read_file($name);
     $self->new(header => $header, geodata => $data, filename => $name, rel_path => path($name)->to_rel($data_dir));
   }
@@ -93,7 +102,7 @@ get '/' => { layout => 'bare' } => sub($c) {
   $c->set_defaults;
   $c->stash(csv_files => $data_dir
         ->list({dir => 1})
-        ->grep(sub { /\.csv$/ || -d "$_" })
+        ->grep(sub { /\.csv|.geojson$/ || -d "$_" })
         ->sort(sub { $b->stat->atime <=> $a->stat->atime } ) );
 } => 'index';
 
@@ -110,7 +119,7 @@ get '/show/csv/*name' => sub($c) {
   my $io   = $data_dir->child("$name");
   if (-d $io) {
     $c->stash(geofiles =>
-        $io->list->grep(sub { /\.csv$/ })->map(sub { Geofile->ingest("$_") }));
+        $io->list->grep(sub { /\.csv|\.geojson$/ })->map(sub { Geofile->ingest("$_") }));
   } else {
     $c->stash(geofiles => [Geofile->ingest("$io.csv")]);
   }
@@ -125,7 +134,7 @@ get 'datasets/*name/data.js' => { format => 'js', layout => '' } => sub($c) {
   my $name = $c->stash('name');
   my $io = $data_dir->child($name);
   if (-d $io) {
-    $c->stash(geofiles => $io->list->grep(sub { /\.csv$/ })->map(sub { Geofile->ingest("$_") }));
+    $c->stash(geofiles => $io->list->grep(sub { /\.csv|\.geojson$/ })->map(sub { Geofile->ingest("$_") }));
     if (-e $io->child("config.js") ) {
       $c->stash(leafpad_config => $io->child('config.js')->slurp)
     }
