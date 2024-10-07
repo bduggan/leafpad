@@ -18,6 +18,8 @@ source
 %= end
 </h3>
 
+<button id='fullscreen' class='fullscreen_button' onclick='{ document.getElementById("deckwrapper").requestFullscreen() }'>「」fullscreen</button>
+
 <style>
 #deckgl {
   height: 80vh;
