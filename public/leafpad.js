@@ -8,7 +8,7 @@ if (typeof(leafpad_config) == 'undefined') {
 let default_config = {
   tile_provider: 'CartoDB.Positron',
   initial_zoom: 5,
-  max_zoom: 20,
+  max_zoom: 25,
   fly_zoom: 14,
   initial_lat: 37.09,
   initial_lon: -96.70,
@@ -166,7 +166,9 @@ function map_dataset(dataset) {
      let color = find_col(row,lcol,'color')
      if (color) { point_style['color'] = color; layer_style = color }
 
-     let geolayer = L.geoJSON(geom,
+     let geolayer = null
+     try {
+       geolayer = L.geoJSON(geom,
             {
               style: function(feature) {
                 if (feature.geometry.type == 'Point') return point_style
@@ -181,7 +183,11 @@ function map_dataset(dataset) {
                         }
                  : function (f,latlng) { return L.circleMarker(latlng,point_style) }
            }
-     )
+       )
+       } catch(e) {
+         console.log(`error creating layer: ${e.message}`)
+         continue
+       }
      if (!first_layer) first_layer = geolayer;
 
      geolayer.on('mouseover', function() {
@@ -600,6 +606,7 @@ function describe_geodata(geo) {
   if (geom.type && geom.type == "Feature" && geom.geometry){
     geom = geom.geometry
   }
+  if (!geom.type) return geo
   let desc = `${geom.type}`
   if (geom) {
     let c = geom.coordinates
