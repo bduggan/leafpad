@@ -1,22 +1,29 @@
 ## leafpad
 
-A geospatial exploration platform
+Quickly visualize and explore geographical data.
 
 ## Description
 
-Leafpad is a framework for geographical data visualization and exploration.
-
-It uses the excellent [leaflet](https://leafletjs.com/) library.
+Put your tabular data on a map, and instantly see it in leafpad
+or deck.gl.  Add styles, and update your data locally with your
+programming language of choice, or use it is remotely with datasets
+in gists, or mode analytics.
 
 ## How it works
 
-### Viewing data
+1. Put your CSV files into a directory
+2. Each CSV file will be a layer on the map
+3. Geojson columns are rendered as well as lat/lon columns
+4. Each column can have corresponding columns which define styles
+5. Styles are used by leafpad or deck.gl.
 
-1. Put files into a directory:
+### Details
+
+1. Sample directory structure:
 
            leafpad-data
-                   └── demo                     <-- project
-                       └─── cities.csv          <-- dataset
+                   └── demo                     <-- "project"
+                       └─── cities.csv          <-- layer
 
     By default leafpad will look in $HOME/leafpad-data.  This
     can be changed by setting the LEAFPAD_DATA environment
@@ -26,7 +33,7 @@ It uses the excellent [leaflet](https://leafletjs.com/) library.
 
    http://localhost:3000
 
-3. Click `demo` to go to http://localhost:3000/show/csv/demo
+3. Click `demo` to go to http://localhost:3000/show/csv/demo -- this corresponds to the directory `leafpad-data/demo`.
 
 4. Click on a column to visit it on the map
 
@@ -74,7 +81,7 @@ and go to http://localhost:3000 and click on "demo"
 
 ## Documentation
 
-### How dataset columns are rendered
+### How dataset columns are rendered in leaflet
 
 - Columns that look like geojson are rendered as geojson
 - Columns ending in _style or _pt_style are styles applied to the corresponding column
@@ -82,6 +89,15 @@ and go to http://localhost:3000 and click on "demo"
 - Columns ending in '_icon_class' are used for the class.  [xkcd color names](https://xkcd.com/color/rgb/) are included with the stylesheet.
 - Columns ending in _hlstyle are styles used when that layer is highlighted
 - Valid style options are can be found [here](https://leafletjs.com/reference.html#path-option)
+
+### How dataset columns are rendered in deck.gl
+
+- Columns that look like geojson are rendered as geojson
+- Columns that start with `props_` are used as properties for the deck.gl layer
+- examples: `props_color`, `props_text_size`, `props_elevation`
+- Prefix a style column with the name of the geojson column to apply it to that column
+- examples: `building_props_color` will affect the color of a geojson column named `building`
+- A CSV file named `gl_defaults` will set the defaults
 
 ### Interacting with the map
 
@@ -95,7 +111,7 @@ and go to http://localhost:3000 and click on "demo"
 
 ### Animation
 
-  - Animation can be achieved by setting the _style associated with a column to 0.0, and setting the _hlstyle
+  - Animation in leafpad can be achieved by setting the _style associated with a column to 0.0, and setting the _hlstyle
      associated with a column to something non-zero.  Then when scrolling through the rows of a dataset, only
      the currently highlighted row will be visible.
 
@@ -113,7 +129,7 @@ and go to http://localhost:3000 and click on "demo"
   }
   ```
 
-Valid configuration settings are:
+Valid configuration settings for leafpad are:
 
 - tile_provider -- default is "CartoDB.Positron" (see this [list](https://leaflet-extras.github.io/leaflet-providers/preview/))
 - initial_zoom, initial_lat, initial_lon
