@@ -139,6 +139,9 @@ get 'datasets/*name/data.js' => { format => 'js', layout => '' } => sub($c) {
       $c->stash(leafpad_config => $io->child('config.js')->slurp)
     }
   } else {
+    if (-e $io->sibling("config.js") ) {
+      $c->stash(leafpad_config => $io->sibling('config.js')->slurp)
+    }
     $c->stash(geofiles => [Geofile->ingest("$io.csv")]);
   }
 
