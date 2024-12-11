@@ -622,6 +622,11 @@ function set_slider_dataset(d) {
   timeline_dataset = d
 }
 
+function nice_link(url) {
+ // just the domain and path, not even the query params, but put dots in the middle
+ return url.replace(/^(https?:\/\/)([^\/]+)(.*)$/, (m, p1, p2, p3) => `[${p2}${p3.replace(/./g, '')}]`)
+}
+
 function show_dataset(table, d) {
   let btn_attrs = { class: 'update_button', "data-query_name" : d.queryName, onclick: `update_dataset("${d.queryName}")` }
   if (!d.can_update) {
@@ -664,6 +669,11 @@ function show_dataset(table, d) {
               elt( 'button', { onclick: `{window.open().document.write(${ JSON.stringify(row[col.name]) });}`  }, '📋'),
              )
         )
+      } else if (row[col.name] && row[col.name].match(/^https?:\/\/.*\.(png|jpg|gif|svg)$/)) {
+        cell.appendChild( elt('img', { src: row[col.name], alt: col.name, title: col.name } ) )
+      } else if (row[col.name] && row[col.name].match(/^https?:\/\/.*$/)) {
+        console.log(`adding link for ${col.name} ${row[col.name]}`)
+        cell.appendChild( elt('a', { href: row[col.name], alt: col.name, title: col.name }, nice_link(row[col.name]) ) )
       } else {
         cell.appendChild( document.createTextNode( row[col.name] ) )
       }
