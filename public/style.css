@@ -302,6 +302,9 @@ div#row_info_props:empty {
   font-family: monospace;
 }
 
+.translucent-7 { opacity: 0.7; }
+.translucent-4 { opacity: 0.7; }
+.translucent-5 { opacity: 0.5; }
 .see-through { background-color: rgba(255,255,255,0.8); }
 .zoom13, .zoom12, .zoom11, .zoom10, .zoom9, .zoom8,
 .zoom7, .zoom6, .zoom5, .zoom4, .zoom3, .zoom2, .zoom1 {

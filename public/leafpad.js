@@ -60,6 +60,7 @@ function config(key) {
 }
 
 var all_layers = {}
+var all_markers = {}
 var first_layer;
 var map;
 var highlighted_layers = [];
@@ -103,9 +104,32 @@ const is_style_col = (name) => (name.match(/_((hl)?style|(fill_)?(color))$/i) ||
 const looks_like_geo_data = (d) => typeof(d) == "string" && d.startsWith('{') && d.indexOf('"coordinates"') > 0 && d.indexOf('"type"') > 0
 
 function highlight_layers(layers) {
-  if (highlighted_layers) highlighted_layers.map( l => l.resetStyle() )
+  if (highlighted_layers) {
+    highlighted_layers.map( l => l.resetStyle() )
+    // restore icons
+    for (let l of highlighted_layers) {
+      let r = l.row_number
+      let q = l.query_name
+      let c = l.col_name
+      let m = all_markers[ l.query_name ][r][c]
+      if (m) {
+        m.setIcon( m['original_icon'] )
+      }
+    }
+  }
   highlighted_layers = layers
   layers.map( l => l.setStyle(l.hl_style || config('hl_style')) )
+
+  for (let l of layers) {
+    let r = l.row_number
+    let q = l.query_name
+    let c = l.col_name
+    let m = all_markers[ l.query_name ][r][c]
+    if (m) {
+      m.setIcon( L.divIcon({ className: m['hl_icon_class'], html: m['hl_icon'], iconSize: 'auto' }) )
+    }
+  }
+
   layers.map( l => l.bringToFront() )
 }
 
@@ -130,8 +154,10 @@ function find_col(row,lcol,suffix) {
 
 function map_dataset(dataset) {
  let row_number = 0
+ all_markers[dataset.queryName] = []
  for (let row of dataset.content) {
    all_layers[dataset.queryName][row_number] = {}
+   all_markers[dataset.queryName][row_number] = {}
    for (let col_spec of dataset.columns) {
      let col = col_spec.name
      if (!is_geo_col(col) && !is_lat_col(col) && !looks_like_geo_data(row[col])) continue;
@@ -158,6 +184,7 @@ function map_dataset(dataset) {
      let point_style = try_parse( row[`${ucol}_PT_STYLE`] || row[`${lcol}_pt_style`] ) || config('pt_style') || layer_style
      let icon = row[`${ucol}_ICON`] || row[`${lcol}_icon`] || config('default_icon')
      let icon_class = row[`${ucol}_ICON_CLASS`] || row[`${lcol}_icon_class`] || config('icon_class')
+     let hl_icon_class = row[`${ucol}_HL_ICON_CLASS`] || row[`${lcol}_hl_icon_class`] || config('hl_icon_class')
      let icon_url = row[`${ucol}_ICON_URL`] || row[`${lcol}_icon_url`] || config('icon_url')
 
      let fill_color = find_col(row,lcol,'fill_color')
@@ -175,8 +202,14 @@ function map_dataset(dataset) {
                 return layer_style
               },
               pointToLayer:
-                 icon ? function (f,latlng) { return L.marker( latlng, {
-                          icon: L.divIcon({ className: icon_class, html: icon, iconSize: 'auto', }) })
+                 icon ? function (f,latlng) {
+                          let new_icon = L.divIcon({ className: icon_class, html: icon, iconSize: 'auto' }) 
+                          let new_marker = L.marker( latlng, { icon: new_icon })
+                          new_marker['original_icon'] = new_icon
+                          new_marker['hl_icon_class'] = hl_icon_class
+                          new_marker['hl_icon'] = icon
+                          all_markers[dataset.queryName][row_number][col] = new_marker
+                          return new_marker
                         }
                  : icon_url ? function (f,latlng) { return L.marker( latlng, {
                    icon: L.icon({ iconUrl: icon_url, iconSize: [ 128, null] }) })
@@ -198,7 +231,9 @@ function map_dataset(dataset) {
       })
       geolayer.on('mouseout', function() { if (hl_hover) this.resetStyle() })
       geolayer.on('click', function() {
+        console.log(`starting highlighting layers`)
         highlight_layers([ this ])
+        console.log(`done highlighting layers`)
         let col = this.col_name;
         let query = this.query_name;
         let row_number = this.row_number;
@@ -672,7 +707,6 @@ function show_dataset(table, d) {
       } else if (row[col.name] && row[col.name].match(/^https?:\/\/.*\.(png|jpg|gif|svg)$/)) {
         cell.appendChild( elt('img', { src: row[col.name], alt: col.name, title: col.name } ) )
       } else if (row[col.name] && row[col.name].match(/^https?:\/\/.*$/)) {
-        console.log(`adding link for ${col.name} ${row[col.name]}`)
         cell.appendChild( elt('a', { href: row[col.name], alt: col.name, title: col.name }, nice_link(row[col.name]) ) )
       } else {
         cell.appendChild( document.createTextNode( row[col.name] ) )
