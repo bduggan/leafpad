@@ -863,7 +863,17 @@ async function main() {
   let q = new URLSearchParams(location.search)
   let p = Object.fromEntries(q.entries())
   if (config('initial_auto') && !p.lat) {
-    map.fitBounds(first_layer.getBounds(), { maxZoom: config('fly_zoom') - 1 })
+    // map.fitBounds(first_layer.getBounds(), { maxZoom: config('fly_zoom') - 1 })
+    // fit bounds for all the layers
+    let bounds = L.latLngBounds();
+    for (let l of Object.values(all_layers)) {
+      for (let r of Object.values(l)) {
+        for (let c of Object.values(r)) {
+          bounds.extend(c.getBounds())
+        }
+      }
+    }
+    map.fitBounds(bounds, { maxZoom: config('fly_zoom') - 1 })
   }
 }
 
