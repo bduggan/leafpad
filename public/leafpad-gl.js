@@ -208,8 +208,8 @@ function make_layer(geojson) {
     filled: to_bool(defaults.filled),
     pointType: defaults.point_type,
     pickable: true,
-    wireframe: true,
-    extruded: to_bool(defaults.extruded), // nb: required for elevation but prevents line width from working
+    wireframe: false,
+    extruded: true, // to_bool(defaults.extruded), // nb: required for elevation but prevents line width from working
     textCharacterSet: 'auto',
     textSizeUnits: 'meters',
     textBackgroundPadding: [2, 2, 2, 2],
@@ -222,7 +222,7 @@ function make_layer(geojson) {
     getLineColor: get_color_prop('getLineColor'),
 
     getElevation: get_numeric_prop('getElevation'),
-    // getElevation: (p) => { return p.properties.height * 1.6},
+    // getElevation: (p) => { return 1000000 },
     getLineWidth: get_numeric_prop('getLineWidth'),
     getPointRadius: get_numeric_prop('getPointRadius'),
     getTextSize: get_numeric_prop('getTextSize'),
