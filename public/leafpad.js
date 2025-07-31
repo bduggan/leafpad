@@ -73,6 +73,7 @@ var hl_hover = false;
 var dt_show = true;
 var select_point = false;
 var mapdiv;
+var dataset_visibility = {}; // Track visibility of datasets
 
 async function map_fullscreen() {
   mapdiv.requestFullscreen()
@@ -102,6 +103,38 @@ const style_prefix = (name) => name.replace(/_?(lat(itude)?)$/i, '')
 const is_style_col = (name) => (name.match(/_((hl)?style|(fill_)?(color))$/i) || name.match(/_icon(_class|_url)?$/i)) ? true : false
 
 const looks_like_geo_data = (d) => typeof(d) == "string" && d.startsWith('{') && d.indexOf('"coordinates"') > 0 && d.indexOf('"type"') > 0
+
+function show_dataset_on_map(query_name) {
+  if (!all_layers[query_name]) return;
+  Object.values(all_layers[query_name]).forEach(row => 
+    Object.values(row).forEach(layer => {
+      if (layer && !map.hasLayer(layer)) {
+        layer.addTo(map);
+      }
+    })
+  );
+  dataset_visibility[query_name] = true;
+}
+
+function hide_dataset_from_map(query_name) {
+  if (!all_layers[query_name]) return;
+  Object.values(all_layers[query_name]).forEach(row => 
+    Object.values(row).forEach(layer => {
+      if (layer && map.hasLayer(layer)) {
+        layer.removeFrom(map);
+      }
+    })
+  );
+  dataset_visibility[query_name] = false;
+}
+
+function handle_dataset_visibility_change(query_name, checked) {
+  if (checked) {
+    show_dataset_on_map(query_name);
+  } else {
+    hide_dataset_from_map(query_name);
+  }
+}
 
 function highlight_layers(layers) {
   if (highlighted_layers) {
@@ -438,12 +471,33 @@ function show_tab(query_name) {
     c.style.display = c.id == table_to_show ? '' : 'none'
   }
   for (let c of document.querySelector('#tabs').children) {
-    c.style.backgroundColor  = c.id == tab_to_show ? 'white' : '#ddd'
-    c.style.color            = c.id == tab_to_show ? 'black' : '#444'
-    c.style['border-bottom'] = c.id == tab_to_show ? '2px solid white' : ''
+    // Handle the new tab container structure
+    let tab_label = c.querySelector(`#${tab_to_show}`);
+    if (tab_label) {
+      c.style.backgroundColor  = 'white'
+      c.style.color            = 'black'
+      c.style['border-bottom'] = '2px solid white'
+    } else {
+      c.style.backgroundColor  = '#ddd'
+      c.style.color            = '#444'
+      c.style['border-bottom'] = '2px solid transparent'
+    }
   }
 }
-const tablistener = (e) => show_tab(e.target.dataset.query_name)
+const tablistener = (e) => {
+  // Don't trigger tab change if clicking on checkbox
+  if (e.target.type === 'checkbox') return;
+  
+  // Find the tab label within the container
+  let tab_label = e.target;
+  if (e.target.classList.contains('tab_container')) {
+    tab_label = e.target.querySelector('[data-query_name]');
+  }
+  
+  if (tab_label && tab_label.dataset.query_name) {
+    show_tab(tab_label.dataset.query_name);
+  }
+}
 
 let running = null;
 function handle_autoplay() {
@@ -781,7 +835,32 @@ function setup_data(panels) {
   let tabs = csv_data.appendChild(div({id:'tabs'}))
   console.log(`loading datasets: ${datasets.length}`)
   for (let d of datasets) {
-    tabs.appendChild( txt({id: `tab_${d.queryName}`, "data-query_name" : `${d.queryName}`}, `${d.queryName}`) )
+    // Create tab container with checkbox and label
+    let tab_container = div({class: 'tab_container'})
+    
+    // Add checkbox for visibility control
+    let checkbox = elt('input', {
+      type: 'checkbox',
+      id: `visibility_${d.queryName}`,
+      'data-query_name': d.queryName,
+      checked: true // Default to visible
+    })
+    checkbox.addEventListener('change', function(e) {
+      handle_dataset_visibility_change(d.queryName, e.target.checked);
+    })
+    
+    // Add label for the tab
+    let tab_label = txt({
+      id: `tab_${d.queryName}`, 
+      "data-query_name" : `${d.queryName}`
+    }, `${d.queryName}`)
+    
+    tab_container.appendChild(checkbox)
+    tab_container.appendChild(tab_label)
+    tabs.appendChild(tab_container)
+    
+    // Initialize visibility state
+    dataset_visibility[d.queryName] = true;
   }
   let tables = csv_data.appendChild( div( {id: 'csv_tables'} ) )
   let added_slider = false
