@@ -832,6 +832,14 @@ async function load_datasets(datasources) {
 
 function setup_data(panels) {
   let csv_data = panels.appendChild(elt('div',{id: 'csv_data'}))
+  // add a link to the parent if there is only one dataset
+  if (datasets.length == 1) {
+    let target_url = location.pathname.replace(/\/[^\/]*$/,'')
+    let name = target_url.split('/').slice(-1)[0]
+    csv_data.appendChild( elt('div', { class: 'parent_link' },
+      elt('a', { href: target_url }, `[${name}]`
+    )))
+  }
   let tabs = csv_data.appendChild(div({id:'tabs'}))
   console.log(`loading datasets: ${datasets.length}`)
   for (let d of datasets) {
