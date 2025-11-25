@@ -73,6 +73,9 @@ package Geofile {
   }
 
   sub read_file($name) {
+   if ($name =~ /\.geojson$/) {
+     return Geofile->ingest_geojson($name);
+   }
    my %seen;
    my @header;
    my $data = csv(in => $name,
@@ -121,7 +124,11 @@ get '/show/csv/*name' => sub($c) {
     $c->stash(geofiles =>
         $io->list->grep(sub { /\.csv|\.geojson$/ })->map(sub { Geofile->ingest("$_") }));
   } else {
-    $c->stash(geofiles => [Geofile->ingest("$io.csv")]);
+    if (-e "$io.csv'") {
+      $c->stash(geofiles => [Geofile->ingest("$io.csv")]);
+    } elsif (-e "$io.geojson") {
+      $c->stash(geofiles => [Geofile->ingest("$io.geojson")]);
+    }
   }
   if ($c->param('gl')) {
     $c->stash(layout => 'gl');
@@ -141,6 +148,9 @@ get 'datasets/*name/data.js' => { format => 'js', layout => '' } => sub($c) {
   } else {
     if (-e $io->sibling("config.js") ) {
       $c->stash(leafpad_config => $io->sibling('config.js')->slurp)
+    }
+    if (-e "$io.geojson") {
+      return $c->stash(geofiles => [Geofile->ingest("$io.geojson")]);
     }
     $c->stash(geofiles => [Geofile->ingest("$io.csv")]);
   }
